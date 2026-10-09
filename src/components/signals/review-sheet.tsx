@@ -21,6 +21,8 @@ import { WhatIfPanel } from "./what-if-panel";
 
 interface ReviewSheetProps {
   rec: Recommendation | null;
+  /** Open signals this decision also settles (same SKU, store and kind). */
+  related: Recommendation[];
   position: { index: number; total: number };
   onClose: () => void;
   onPrev: () => void;
@@ -62,7 +64,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 const isTyping = (t: EventTarget | null) =>
   t instanceof HTMLElement && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT" || t.isContentEditable);
 
-export function ReviewSheet({ rec, position, onClose, onPrev, onNext, onDecided }: ReviewSheetProps) {
+export function ReviewSheet({ rec, related, position, onClose, onPrev, onNext, onDecided }: ReviewSheetProps) {
   const { decide } = useDecisions();
   const recommended = rec?.optionSet.options.find((o) => o.recommended) ?? rec?.optionSet.options[0] ?? null;
   const [selection, setSelection] = useState<Selection | null>(null);
@@ -189,6 +191,12 @@ export function ReviewSheet({ rec, position, onClose, onPrev, onNext, onDecided 
                 Review action: {p.product} <span className="font-normal text-muted-foreground">· {p.store ?? "All stores"}</span>
               </SheetTitle>
               <SheetDescription>{p.message}</SheetDescription>
+              {related.length > 0 && (
+                <p className="text-xs text-muted-foreground">
+                  Deciding here also settles {related.length} related {related.length === 1 ? "signal" : "signals"} for this SKU and store:{" "}
+                  {related.map((r) => TYPE_LABEL[r.problem.type]).join(", ")}.
+                </p>
+              )}
             </SheetHeader>
 
             <div className="flex-1 space-y-8 overflow-y-auto p-4 sm:p-6">

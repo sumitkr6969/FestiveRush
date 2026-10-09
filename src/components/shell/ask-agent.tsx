@@ -19,14 +19,16 @@ const SUGGESTIONS = ["Why Store A?", "Why Supplier B for TV-55-SM?", "Why is PO-
 export function AskAgent() {
   const router = useRouter();
   const { askOpen, setAskOpen } = useUi();
-  const { data } = useOpenSignals();
+  const { data, open } = useOpenSignals();
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState<{ q: string; e: Explanation } | null>(null);
 
   const ask = (q: string) => {
     if (!q.trim() || !data) return;
     setQuestion(q);
-    setAnswer({ q, e: explain(q, data.recommendations) });
+    // Open signals rank first, so ties go to what still needs a decision.
+    const decided = data.recommendations.filter((r) => !open.includes(r));
+    setAnswer({ q, e: explain(q, [...open, ...decided]) });
   };
 
   return (

@@ -6,6 +6,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { EmptyState, ErrorState, ListSkeleton, PageHeader } from "@/components/common/states";
 import { Button } from "@/components/ui/button";
 import { applyFilters, hasFilters, parseFilters, toQuery, type SignalFilters } from "@/lib/client/signalFilters";
+import { relatedSignals } from "@/lib/client/signalGroups";
 import { useOpenSignals } from "@/lib/client/useSignals";
 import type { ProblemType } from "@/lib/decisionTypes";
 import { FilterBar } from "./filter-bar";
@@ -38,10 +39,14 @@ export function SignalsView() {
     if (next) navigate(filters, next.problem.id);
   };
 
-  // After a decision, move to the next signal so a review can run start to finish.
+  // After a decision, move to the next signal so a review can run start to finish,
+  // skipping signals the decision just settled.
   const afterDecision = () => {
-    const next = reviewList[index + 1] ?? reviewList[index - 1] ?? null;
-    navigate(filters, next && next.problem.id !== reviewId ? next.problem.id : null);
+    if (!current) return navigate(filters, null);
+    const settled = new Set([current.problem.id, ...relatedSignals(current, reviewList).map((r) => r.problem.id)]);
+    const after = reviewList.slice(index + 1).find((r) => !settled.has(r.problem.id));
+    const before = reviewList.slice(0, index).reverse().find((r) => !settled.has(r.problem.id));
+    navigate(filters, (after ?? before)?.problem.id ?? null);
   };
 
   const categories = useMemo(() => [...new Set((data?.recommendations ?? []).map((r) => r.problem.category))].sort(), [data]);
@@ -93,6 +98,7 @@ export function SignalsView() {
 
       <ReviewSheet
         rec={current}
+        related={current ? relatedSignals(current, open) : []}
         position={{ index: Math.max(index, 0), total: reviewList.length }}
         onClose={() => navigate(filters, null)}
         onPrev={() => step(-1)}
