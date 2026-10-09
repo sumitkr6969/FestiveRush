@@ -1,0 +1,92 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Design tokens (HSL channels so Tailwind can apply opacity).
+ * background slate-50 / slate-950, primary indigo-600,
+ * critical red-600, warning amber-500, healthy emerald-600, info sky-600.
+ */
+@layer base {
+  :root {
+    --background: 210 40% 98%;
+    --foreground: 222.2 47.4% 11.2%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 47.4% 11.2%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 47.4% 11.2%;
+    --primary: 243.4 75.4% 58.6%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 40%;
+    --accent: 226.5 100% 96.5%;
+    --accent-foreground: 243.7 54.5% 41.4%;
+    --destructive: 0 72.2% 50.6%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 243.4 75.4% 58.6%;
+    --radius: 0.75rem;
+
+    --critical: 0 72.2% 50.6%;
+    --warning: 37.7 92.1% 50.2%;
+    --healthy: 161.4 93.5% 30.4%;
+    --info: 200.4 98% 39.4%;
+
+    --sidebar: 0 0% 100%;
+    --sidebar-foreground: 215.3 25% 26.7%;
+  }
+
+  .dark {
+    --background: 229 84% 5%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 47.4% 8%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 47.4% 8%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 234.5 89.5% 73.9%;
+    --primary-foreground: 229 84% 5%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 70%;
+    --accent: 243.7 47% 20%;
+    --accent-foreground: 226.5 100% 93.9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 234.5 89.5% 73.9%;
+
+    /* Lighter steps in dark mode keep severity text at WCAG AA contrast. */
+    --critical: 0 90.6% 70.8%;
+    --warning: 43.3 96.4% 56.3%;
+    --healthy: 156.2 71.6% 66.9%;
+    --info: 198.4 93.2% 59.6%;
+
+    --sidebar: 222.2 47.4% 7%;
+    --sidebar-foreground: 214.3 31.8% 85%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

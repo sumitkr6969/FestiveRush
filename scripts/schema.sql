@@ -1,0 +1,2 @@
+-- Exactly 6 tables: products, inventory, sales, suppliers, purchase_orders, promotions.
+-- Defined in a later task.
