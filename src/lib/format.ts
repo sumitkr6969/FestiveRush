@@ -1,4 +1,15 @@
-const DISPLAY_DATE = new Intl.DateTimeFormat("en-IN", {
+const INR = new Intl.NumberFormat("en-IN", {
+  style: "currency",
+  currency: "INR",
+  maximumFractionDigits: 0,
+});
+
+/** Whole rupees with Indian digit grouping, e.g. ₹1,17,600. */
+export function formatINR(amount: number): string {
+  return INR.format(Math.round(amount));
+}
+
+const DISPLAY_DATE =new Intl.DateTimeFormat("en-IN", {
   weekday: "short",
   day: "numeric",
   month: "short",

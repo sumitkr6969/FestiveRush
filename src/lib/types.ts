@@ -76,7 +76,8 @@ export interface PromotionRow {
 
 export type OverstockReason = "slow_moving" | "aged" | "new_launch_cannibalized";
 
-export type UnderstockSeverity = "CRITICAL" | "HIGH" | "MEDIUM";
+export type Severity = "CRITICAL" | "HIGH" | "MEDIUM";
+export type UnderstockSeverity = Severity;
 
 export interface OverstockItem {
   sku: string;
@@ -86,7 +87,7 @@ export interface OverstockItem {
   avgDailySales: number;
   daysOfStock: number;
   ageingDays: number;
-  /** INR value of the excess units at purchase cost. */
+  /** INR: stock × cheapest supplier purchase price. */
   cashTiedUp: number;
   reason: OverstockReason;
   /** Stores short of this SKU that could take the surplus. */
@@ -102,7 +103,7 @@ export interface UnderstockItem {
   daysOfStock: number;
   reorderPoint: number;
   stockoutInDays: number;
-  /** Days until a promotion covering this SKU starts; null if none is upcoming. */
+  /** Days until a promotion covering this SKU starts (0 if running now); null if none. */
   promotionStartingInDays: number | null;
   /** Units expected to be needed once promotion uplift is applied. */
   projectedDemandWithPromo: number;
@@ -125,7 +126,7 @@ export interface StockAnalysisSummary {
   totalStores: number;
   /** INR tied up in overstocked units. */
   totalOverstockedValue: number;
-  /** INR of sales at risk from understocked SKUs. */
+  /** INR: Σ max(0, projectedDemandWithPromo − stock) × selling price over understocked rows. */
   totalUnderstockedRisk: number;
 }
 
