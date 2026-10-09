@@ -1,16 +1,16 @@
 import { addDays } from "../../src/lib/dates";
 import type { IsoDate, ProductRow, PromotionRow } from "../../src/lib/types";
+import { SCENARIO } from "./scenario";
 
 type Promo = [skuOrCategory: string, startOffset: number, endOffset: number, discount: number, uplift: number];
 
-// Offsets from asOf. With TODAY = Fri 2026-10-09, +7 is the following Friday.
+const { promo } = SCENARIO;
+
+// Exactly three, offsets from asOf.
 const PROMOS: readonly Promo[] = [
-  ["Televisions", 7, 16, 0.15, 0.6], // Dussehra TV fest
-  ["PH-VEL-X14", 14, 31, 0.08, 0.4], // Diwali launch offer
-  ["Audio", 21, 31, 0.2, 0.5], // Diwali week
-  ["Home Appliances", 21, 31, 0.12, 0.35], // Diwali week
-  ["Laptops", -57, -53, 0.1, 0.3], // Independence Day (past, visible in sales)
-  ["PH-VEL-X12", -19, -9, 0.12, 0.25], // attempt to clear X12 (past, too small)
+  [promo.category, promo.startOffset, promo.endOffset, promo.discount, promo.uplift], // starts in 3 days
+  ["Earphones", -5, 9, 0.15, 0.35], // active now
+  ["Washing Machine", -10, 2, 0.1, 0.25], // ends within 3 days
 ];
 
 export function buildPromotions(asOf: IsoDate): PromotionRow[] {
