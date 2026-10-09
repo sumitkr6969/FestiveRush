@@ -10,7 +10,10 @@ export function GET() {
   return NextResponse.json({ decisions: log.list(), persistent: log.persistent });
 }
 
-/** Logs a human approve/reject. Records the decision only: the action stays simulated. */
+/**
+ * Logs a human approve/reject: one record per draft in the plan (the option and
+ * its top-up order, if any). Nothing is executed; every draft stays simulated.
+ */
 export async function POST(request: Request) {
   let body: unknown;
   try {
@@ -23,6 +26,13 @@ export async function POST(request: Request) {
 
   const log = getDecisionLog();
   // Wall-clock audit time, not business time, so `new Date()` is right here.
-  const record = log.record(parsed.input, new Date().toISOString());
-  return NextResponse.json({ decision: record, persistent: log.persistent }, { status: 201 });
+  const decidedAt = new Date().toISOString();
+  const decisions = parsed.drafts.map((draft) =>
+    log.record(
+      { problemId: parsed.problemId, draftId: draft.id, decision: parsed.decision, ...(parsed.reason ? { reason: parsed.reason } : {}) },
+      draft,
+      decidedAt,
+    ),
+  );
+  return NextResponse.json({ decisions, persistent: log.persistent }, { status: 201 });
 }

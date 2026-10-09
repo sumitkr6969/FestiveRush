@@ -42,7 +42,11 @@ export const TRANSFER_LEAD_DAYS = 1;
 export const WAREHOUSE = "Central Warehouse";
 /** Label for network-level needs that aren't tied to one store. */
 export const NETWORK = "Network";
+/** Heatmap: fewer days of stock than this is shown as low. */
+export const LOW_STOCK_DAYS = 7;
 /** A running promotion ending within this many days is "ending soon". */
 export const PROMO_ENDING_SOON_DAYS = 3;
+/** A promotion starting within this many days is "starting soon". */
+export const PROMO_STARTING_SOON_DAYS = 7;
 /** The options engine returns at most this many options per problem. */
 export const MAX_OPTIONS = 4;

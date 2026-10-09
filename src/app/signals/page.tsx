@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
-import { PlaceholderPage } from "@/components/shell/placeholder-page";
-import { getNavItem } from "@/components/shell/nav";
+import { Suspense } from "react";
+import { ListSkeleton } from "@/components/common/states";
+import { SignalsView } from "@/components/signals/signals-view";
 
-const item = getNavItem("/signals");
-
-export const metadata: Metadata = { title: item.label };
+export const metadata: Metadata = { title: "Stock signals" };
 
 export default function StockSignalsPage() {
-  return <PlaceholderPage item={item} />;
+  return (
+    <Suspense fallback={<ListSkeleton rows={5} className="mx-auto max-w-5xl" />}>
+      <SignalsView />
+    </Suspense>
+  );
 }

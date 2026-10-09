@@ -27,8 +27,23 @@ export interface InboundPo {
   expectedDate: IsoDate;
 }
 
+export interface PromotionWindow {
+  name: string;
+  start: IsoDate;
+  end: IsoDate;
+  uplift: number;
+}
+
+/** What the stock curve needs: today's stock and projected demand per day. */
+interface StockOutlook {
+  currentStock: number;
+  /** Projected units per day for the next PROJECTION_DAYS (index 0 = asOf). */
+  dailyDemand: number[];
+  promotion: PromotionWindow | null;
+}
+
 /** Everything buildOptions needs to cover a shortage, so it stays a pure function. */
-export interface ReplenishmentNeed {
+export interface ReplenishmentNeed extends StockOutlook {
   asOf: IsoDate;
   sku: string;
   product: string;
@@ -47,7 +62,7 @@ export interface ReplenishmentNeed {
 }
 
 /** Everything buildOptions needs to deal with stock that isn't selling. */
-export interface ExcessContext {
+export interface ExcessContext extends StockOutlook {
   asOf: IsoDate;
   sku: string;
   product: string;
@@ -66,12 +81,31 @@ export type ProblemContext =
   | { kind: "replenish"; need: ReplenishmentNeed }
   | { kind: "excess"; excess: ExcessContext };
 
+/** The numbers behind a signal card's evidence chips. Network signals aggregate stores. */
+export interface SignalFacts {
+  stock: number;
+  avgDailySales: number;
+  daysOfStock: number;
+  fastestLead: number;
+  slowestLead: number;
+  ageingDays: number;
+  /** Uplift of the running or next promotion, as a fraction; null if none. */
+  promoUplift: number | null;
+  /** Extra units the promotion adds over the projection horizon; null if none. */
+  promoExtraUnits: number | null;
+  /** INR: lost sales for shortages, cash tied up for excess. */
+  cashAtRisk: number;
+}
+
 export interface Problem {
   id: string;
   type: ProblemType;
   severity: Severity;
   sku: string;
+  product: string;
+  category: string;
   store?: string;
+  facts: SignalFacts;
   /** Facts behind the problem, for display. */
   evidence: Record<string, string | number | boolean | null>;
   message: string;
@@ -145,6 +179,13 @@ export interface Draft {
 
 export type DecisionOutcome = "approved" | "rejected";
 
+/** A what-if change to an option: a different quantity and/or source. */
+export interface OptionAdjustment {
+  units: number;
+  /** Supplier name or donor store; omitted to keep the option's own source. */
+  source?: string;
+}
+
 export interface DecisionInput {
   problemId: string;
   draftId: string;
@@ -156,4 +197,6 @@ export interface DecisionRecord extends DecisionInput {
   id: string;
   /** ISO timestamp of when the human decided (wall-clock, not business time). */
   decidedAt: string;
+  /** The draft exactly as approved or rejected, including any what-if changes. */
+  draft: Draft;
 }

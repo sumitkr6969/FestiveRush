@@ -9,7 +9,41 @@ export function formatINR(amount: number): string {
   return INR.format(Math.round(amount));
 }
 
-const DISPLAY_DATE =new Intl.DateTimeFormat("en-IN", {
+const COMPACT_INR = new Intl.NumberFormat("en-IN", {
+  style: "currency",
+  currency: "INR",
+  notation: "compact",
+  maximumFractionDigits: 1,
+});
+const NUMBER = new Intl.NumberFormat("en-IN", { maximumFractionDigits: 1 });
+const SHORT_DATE = new Intl.DateTimeFormat("en-IN", { day: "numeric", month: "short", timeZone: "UTC" });
+const TIMESTAMP = new Intl.DateTimeFormat("en-IN", {
+  dateStyle: "medium",
+  timeStyle: "short",
+  timeZone: "Asia/Kolkata",
+});
+
+/** Short rupees for tiles, e.g. ₹1.4Cr, ₹55.8L. */
+export function formatCompactINR(amount: number): string {
+  return COMPACT_INR.format(amount);
+}
+
+/** Indian digit grouping, up to one decimal. */
+export function formatNumber(value: number): string {
+  return NUMBER.format(value);
+}
+
+/** "12 Oct" from a YYYY-MM-DD string. */
+export function formatShortDate(isoDate: string): string {
+  return SHORT_DATE.format(new Date(`${isoDate}T00:00:00Z`));
+}
+
+/** Wall-clock audit timestamps (decisions), shown in India time. */
+export function formatTimestamp(iso: string): string {
+  return TIMESTAMP.format(new Date(iso));
+}
+
+const DISPLAY_DATE = new Intl.DateTimeFormat("en-IN", {
   weekday: "short",
   day: "numeric",
   month: "short",

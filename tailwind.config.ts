@@ -47,10 +47,10 @@ const config: Config = {
           foreground: "hsl(var(--card-foreground))",
         },
         // Severity scale from the design system. Always pair with an icon + label.
-        critical: "hsl(var(--critical))",
-        warning: "hsl(var(--warning))",
-        healthy: "hsl(var(--healthy))",
-        info: "hsl(var(--info))",
+        critical: { DEFAULT: "hsl(var(--critical))", ink: "hsl(var(--critical-ink))" },
+        warning: { DEFAULT: "hsl(var(--warning))", ink: "hsl(var(--warning-ink))" },
+        healthy: { DEFAULT: "hsl(var(--healthy))", ink: "hsl(var(--healthy-ink))" },
+        info: { DEFAULT: "hsl(var(--info))", ink: "hsl(var(--info-ink))" },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar))",
           foreground: "hsl(var(--sidebar-foreground))",

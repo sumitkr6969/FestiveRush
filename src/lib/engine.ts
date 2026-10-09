@@ -1,10 +1,12 @@
 // Server-only: opens the SQLite file. Never import from a client component.
-import { createDraft, createDecisionLog, DECISIONS_PATH, type DecisionLog } from "./actions";
+import { createDecisionLog, DECISIONS_PATH, type DecisionLog } from "./actions";
+import { createDraft } from "./drafts";
 import { TODAY } from "./config";
 import { getDb } from "./db";
 import type { Draft, OptionSet, Problem } from "./decisionTypes";
 import { buildOptions } from "./optionsEngine";
 import { detectProblemsInSnapshot } from "./problemDetector";
+import { loadSalesSeries, type SalesDay } from "./salesSeries";
 import { loadSnapshot, type Snapshot } from "./snapshot";
 import { analyzeSnapshot, bySeverity } from "./stockAnalyzer";
 import type { IsoDate, StockAnalysis } from "./types";
@@ -50,6 +52,16 @@ export function getEngine(asOf: IsoDate = TODAY): EngineResult {
   const result = runEngine(loadSnapshot(getDb(), asOf));
   cache.set(asOf, result);
   return result;
+}
+
+const salesCache = new Map<IsoDate, SalesDay[]>();
+
+export function getSalesSeries(asOf: IsoDate = TODAY): SalesDay[] {
+  const cached = salesCache.get(asOf);
+  if (cached) return cached;
+  const series = loadSalesSeries(getDb(), asOf);
+  salesCache.set(asOf, series);
+  return series;
 }
 
 let decisionLog: DecisionLog | null = null;

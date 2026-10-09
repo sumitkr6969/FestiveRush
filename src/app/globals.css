@@ -34,6 +34,15 @@
     --warning: 37.7 92.1% 50.2%;
     --healthy: 161.4 93.5% 30.4%;
     --info: 200.4 98% 39.4%;
+    /* Text on tinted severity backgrounds: darker steps so they clear WCAG AA. */
+    --critical-ink: 0 73.7% 41.8%;
+    --warning-ink: 22.7 82.5% 31.4%;
+    --healthy-ink: 163.1 93.5% 24.3%;
+    --info-ink: 201.3 96.3% 32.2%;
+    /* Charts: one accent series plus a de-emphasis grey (validated, both >= 3:1). */
+    --chart-1: 243.4 75.4% 58.6%;
+    --chart-muted: 215.4 16.3% 46.9%;
+    --chart-grid: 214.3 31.8% 91.4%;
 
     --sidebar: 0 0% 100%;
     --sidebar-foreground: 215.3 25% 26.7%;
@@ -65,6 +74,13 @@
     --warning: 43.3 96.4% 56.3%;
     --healthy: 156.2 71.6% 66.9%;
     --info: 198.4 93.2% 59.6%;
+    --critical-ink: 0 93.5% 81.8%;
+    --warning-ink: 45.9 96.7% 64.5%;
+    --healthy-ink: 156.2 71.6% 66.9%;
+    --info-ink: 199.3 95.5% 73.9%;
+    --chart-1: 238.7 83.5% 66.7%;
+    --chart-muted: 215.4 16.3% 46.9%;
+    --chart-grid: 217.2 32.6% 17.5%;
 
     --sidebar: 222.2 47.4% 7%;
     --sidebar-foreground: 214.3 31.8% 85%;

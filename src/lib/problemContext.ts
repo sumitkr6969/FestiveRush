@@ -1,8 +1,15 @@
-import { PROJECTION_DAYS, WAREHOUSE, WEEKLY_DEPRECIATION } from "./config";
+import { NO_SALES_DAYS_OF_STOCK, PROJECTION_DAYS, WAREHOUSE, WEEKLY_DEPRECIATION } from "./config";
 import { addDays, daysBetween } from "./dates";
-import type { Donor, ExcessContext, InboundPo, ReplenishmentNeed } from "./decisionTypes";
+import type {
+  Donor,
+  ExcessContext,
+  InboundPo,
+  PromotionWindow,
+  ReplenishmentNeed,
+  SignalFacts,
+} from "./decisionTypes";
 import type { CellAssessment } from "./stockAnalyzer";
-import type { IsoDate, PurchaseOrderRow, SupplierRow } from "./types";
+import type { IsoDate, PromotionRow, PurchaseOrderRow, SupplierRow } from "./types";
 
 /** Shared lookups for building problem contexts from one assessed snapshot. */
 export interface DetectionInput {
@@ -52,8 +59,63 @@ function warehouseSpare(input: DetectionInput, sku: string): number | null {
   return wh ? wh.stock : null;
 }
 
+const windowOf = (p: PromotionRow | null): PromotionWindow | null =>
+  p ? { name: p.sku_or_category, start: p.start, end: p.end, uplift: p.expected_uplift } : null;
+
+const round2 = (n: number) => Math.round(n * 100) / 100;
+
+function cellOutlook(c: CellAssessment) {
+  return { currentStock: c.stock, dailyDemand: c.dailyDemand, promotion: windowOf(c.promotion) };
+}
+
+function networkOutlook(cells: readonly CellAssessment[]) {
+  const days = cells[0]?.dailyDemand.length ?? 0;
+  return {
+    currentStock: cells.reduce((s, c) => s + c.stock, 0),
+    dailyDemand: Array.from({ length: days }, (_, d) => round2(cells.reduce((s, c) => s + (c.dailyDemand[d] ?? 0), 0))),
+    promotion: windowOf(cells[0]?.promotion ?? null),
+  };
+}
+
+/** Facts for one store's signal card. */
+export function cellFacts(c: CellAssessment, cashAtRisk: number): SignalFacts {
+  return {
+    stock: c.stock,
+    avgDailySales: c.avgDailySales,
+    daysOfStock: c.daysOfStock,
+    fastestLead: c.fastestLead,
+    slowestLead: c.slowestLead,
+    ageingDays: c.ageingDays,
+    promoUplift: c.promotion?.expected_uplift ?? null,
+    promoExtraUnits: c.promotion ? Math.round((c.projectedDemandWithPromo - c.projectedDemandBase) * 10) / 10 : null,
+    cashAtRisk,
+  };
+}
+
+/** Facts for a SKU-wide signal: stock and sales summed, days of stock recomputed. */
+export function networkFacts(input: DetectionInput, sku: string, cashAtRisk: number): SignalFacts {
+  const cells = cellsFor(input, sku);
+  const first = cells[0];
+  if (!first) throw new Error(`No inventory for ${sku}`);
+  const stock = cells.reduce((s, c) => s + c.stock, 0);
+  const rate = cells.reduce((s, c) => s + c.avgDailySales, 0);
+  const extra = cells.reduce((s, c) => s + c.projectedDemandWithPromo - c.projectedDemandBase, 0);
+  return {
+    stock,
+    avgDailySales: Math.round(rate * 100) / 100,
+    daysOfStock: rate > 0 ? Math.round((stock / rate) * 10) / 10 : NO_SALES_DAYS_OF_STOCK,
+    fastestLead: first.fastestLead,
+    slowestLead: first.slowestLead,
+    ageingDays: Math.max(...cells.map((c) => c.ageingDays)),
+    promoUplift: first.promotion?.expected_uplift ?? null,
+    promoExtraUnits: first.promotion ? Math.round(extra * 10) / 10 : null,
+    cashAtRisk,
+  };
+}
+
 export function needForCell(input: DetectionInput, c: CellAssessment): ReplenishmentNeed {
   return {
+    ...cellOutlook(c),
     asOf: input.asOf,
     sku: c.sku,
     product: c.product,
@@ -76,6 +138,7 @@ export function networkNeed(input: DetectionInput, sku: string, units: number, d
   if (!first) throw new Error(`No inventory for ${sku}`);
   const soonest = Math.min(...cells.map((c) => c.stockoutInDays));
   return {
+    ...networkOutlook(cells),
     asOf: input.asOf,
     sku,
     product: first.product,
@@ -96,6 +159,7 @@ export function excessForCell(input: DetectionInput, c: CellAssessment): ExcessC
   // cover), the whole stock is the problem because it's all ageing.
   const excessUnits = c.surplus > 0 ? c.surplus : c.stock;
   return {
+    ...cellOutlook(c),
     asOf: input.asOf,
     sku: c.sku,
     product: c.product,

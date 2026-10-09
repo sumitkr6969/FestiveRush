@@ -23,9 +23,15 @@ export interface CellMetrics {
   cheapestPrice: number;
   cashTiedUp: number;
   projectedDemandWithPromo: number;
+  /** The same projection with no promotion uplift, to size the promotion's effect. */
+  projectedDemandBase: number;
+  /** Projected units per day for the next PROJECTION_DAYS (index 0 = asOf). */
+  dailyDemand: number[];
   /** stock − ceil(avgDailySales × PROJECTION_DAYS); spare units when > 0. */
   surplus: number;
   promotionStartingInDays: number | null;
+  /** The running or next promotion covering this SKU. */
+  promotion: PromotionRow | null;
 }
 
 export const round1 = (value: number) => Math.round(value * 10) / 10;
@@ -60,21 +66,34 @@ export function promotionsFor(product: ProductRow, promotions: readonly Promotio
  * avgDailySales already blends weekdays and weekends, so the day shape is
  * normalised to average 1 over a week: it redistributes demand, never inflates it.
  */
+export function projectDailyDemand(
+  avgDailySales: number,
+  asOf: IsoDate,
+  promos: readonly PromotionRow[],
+  weekendFactor: number,
+): number[] {
+  const weekMean = (5 + 2 * weekendFactor) / 7;
+  return Array.from({ length: PROJECTION_DAYS }, (_, d) => {
+    const date = addDays(asOf, d);
+    const shape = (isWeekend(date) ? weekendFactor : 1) / weekMean;
+    const promo = promos.find((p) => p.start <= date && date <= p.end);
+    return avgDailySales * shape * (1 + (promo?.expected_uplift ?? 0));
+  });
+}
+
 export function projectDemand(
   avgDailySales: number,
   asOf: IsoDate,
   promos: readonly PromotionRow[],
   weekendFactor: number,
 ): number {
-  const weekMean = (5 + 2 * weekendFactor) / 7;
-  let total = 0;
-  for (let d = 0; d < PROJECTION_DAYS; d += 1) {
-    const date = addDays(asOf, d);
-    const shape = (isWeekend(date) ? weekendFactor : 1) / weekMean;
-    const promo = promos.find((p) => p.start <= date && date <= p.end);
-    total += avgDailySales * shape * (1 + (promo?.expected_uplift ?? 0));
-  }
-  return round1(total);
+  return round1(projectDailyDemand(avgDailySales, asOf, promos, weekendFactor).reduce((a, b) => a + b, 0));
+}
+
+/** The promotion that is running now, or else the next one to start; null if none. */
+function nextPromotion(asOf: IsoDate, promos: readonly PromotionRow[]): PromotionRow | null {
+  const live = promos.filter((p) => p.end >= asOf).sort((a, b) => a.start.localeCompare(b.start));
+  return live[0] ?? null;
 }
 
 /** Leads from suppliers that can actually ship; if all are on backorder, use them all. */
@@ -109,6 +128,7 @@ export function computeMetrics(snapshot: Snapshot): CellMetrics[] {
     const { fastest, slowest } = leadRange(suppliers);
     const cheapestPrice = Math.min(...suppliers.map((s) => s.purchase_price));
     const promos = promotionsFor(product, snapshot.promotions);
+    const dailyDemand = projectDailyDemand(avgDailySales, asOf, promos, weekendFactor);
 
     return {
       sku: row.sku,
@@ -130,9 +150,12 @@ export function computeMetrics(snapshot: Snapshot): CellMetrics[] {
       cheapestPrice,
       // Valued at the cheapest replacement cost: what this stock would cost to rebuy.
       cashTiedUp: row.stock * cheapestPrice,
-      projectedDemandWithPromo: projectDemand(avgDailySales, asOf, promos, weekendFactor),
+      projectedDemandWithPromo: round1(dailyDemand.reduce((a, b) => a + b, 0)),
+      projectedDemandBase: projectDemand(avgDailySales, asOf, [], weekendFactor),
+      dailyDemand: dailyDemand.map((units) => Math.round(units * 100) / 100),
       surplus: row.stock - Math.ceil(avgDailySales * PROJECTION_DAYS),
       promotionStartingInDays: nextPromotionInDays(asOf, promos),
+      promotion: nextPromotion(asOf, promos),
     };
   });
 }

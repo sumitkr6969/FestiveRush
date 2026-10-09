@@ -6,6 +6,7 @@ import { Breadcrumbs } from "./breadcrumbs";
 import { MobileNav } from "./mobile-nav";
 import { SearchButton } from "./search-button";
 import { ThemeToggle } from "./theme-toggle";
+import { TopBarActions } from "./top-bar-actions";
 import { UserChip } from "./user-chip";
 
 export function TopBar() {
@@ -22,6 +23,7 @@ export function TopBar() {
           </time>
         </p>
         <SearchButton />
+        <TopBarActions />
         <ThemeToggle />
         <Separator orientation="vertical" className="hidden h-6 md:block" />
         <UserChip />

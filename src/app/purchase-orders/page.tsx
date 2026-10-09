@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
-import { PlaceholderPage } from "@/components/shell/placeholder-page";
-import { getNavItem } from "@/components/shell/nav";
+import { Suspense } from "react";
+import { OrdersView } from "@/components/orders/orders-view";
+import { Skeleton } from "@/components/ui/skeleton";
 
-const item = getNavItem("/purchase-orders");
-
-export const metadata: Metadata = { title: item.label };
+export const metadata: Metadata = { title: "Purchase orders" };
 
 export default function PurchaseOrdersPage() {
-  return <PlaceholderPage item={item} />;
+  return (
+    <Suspense fallback={<Skeleton className="mx-auto h-96 max-w-6xl rounded-xl" />}>
+      <OrdersView />
+    </Suspense>
+  );
 }

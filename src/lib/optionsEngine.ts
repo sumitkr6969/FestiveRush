@@ -10,7 +10,7 @@ import {
 } from "./config";
 import { addDays } from "./dates";
 import type { ExcessContext, Option, OptionKind, OptionSet, Problem, ReplenishmentNeed } from "./decisionTypes";
-import { formatINR } from "./format";
+import { formatINR, formatShortDate } from "./format";
 import type { SupplierRow } from "./types";
 
 /** Tie-break order: moving stock we already own beats buying more. */
@@ -29,9 +29,9 @@ export function transferCostPerUnit(sellingPrice: number): number {
   return Math.max(MIN_TRANSFER_COST_PER_UNIT, Math.round(sellingPrice * TRANSFER_COST_RATE));
 }
 
-type Draft = Omit<Option, "id" | "recommended" | "reason" | "sku">;
+export type OptionDraft = Omit<Option, "id" | "recommended" | "reason" | "sku">;
 
-function finalize(problem: Problem, drafts: Draft[]): Option[] {
+function finalize(problem: Problem, drafts: OptionDraft[]): Option[] {
   return drafts.map((d) => ({
     ...d,
     id: `${problem.id}:${d.kind}:${d.from}>${d.to}`,
@@ -45,7 +45,7 @@ function finalize(problem: Problem, drafts: Draft[]): Option[] {
 // Shortages
 // ---------------------------------------------------------------------------
 
-function supplierOrder(need: ReplenishmentNeed, s: SupplierRow, units: number): Draft {
+export function supplierOrder(need: ReplenishmentNeed, s: SupplierRow, units: number): OptionDraft {
   const qty = Math.max(units, s.moq);
   const arrivalDate = addDays(need.asOf, s.lead_time_days);
   const notes = [
@@ -69,8 +69,15 @@ function supplierOrder(need: ReplenishmentNeed, s: SupplierRow, units: number): 
   };
 }
 
-function transferIn(need: ReplenishmentNeed, from: string, spare: number, kind: OptionKind): Draft {
-  const units = Math.min(spare, need.unitsNeeded);
+export function transferIn(
+  need: ReplenishmentNeed,
+  from: string,
+  spare: number,
+  kind: OptionKind,
+  wanted: number = need.unitsNeeded,
+): OptionDraft {
+  // Never move more than the donor can spare.
+  const units = Math.max(0, Math.min(spare, wanted));
   return {
     kind,
     label: `Transfer ${units} from ${from} to ${need.destination}`,
@@ -85,8 +92,8 @@ function transferIn(need: ReplenishmentNeed, from: string, spare: number, kind: 
   };
 }
 
-function replenishDrafts(need: ReplenishmentNeed): Draft[] {
-  const drafts: Draft[] = [];
+function replenishDrafts(need: ReplenishmentNeed): OptionDraft[] {
+  const drafts: OptionDraft[] = [];
   const donor = need.donors[0];
   if (need.destination !== NETWORK && donor) drafts.push(transferIn(need, donor.store, donor.spare, "TRANSFER_FROM_STORE"));
   if (need.destination !== WAREHOUSE && need.warehouseSpare !== null && need.warehouseSpare > 0) {
@@ -100,7 +107,7 @@ function replenishDrafts(need: ReplenishmentNeed): Draft[] {
     const units = Math.min(po.qty, need.unitsNeeded);
     drafts.push({
       kind: "WAIT_FOR_PO",
-      label: `Wait for ${po.po} (${po.qty} units due ${po.expectedDate})`,
+      label: `Wait for ${po.po} (${po.qty} units due ${formatShortDate(po.expectedDate)})`,
       from: po.supplier,
       to: need.destination,
       units,
@@ -116,7 +123,7 @@ function replenishDrafts(need: ReplenishmentNeed): Draft[] {
 }
 
 /** Cheapest supplier that lands before the stock-out; else the fastest one that can ship. */
-function topUpFor(need: ReplenishmentNeed, units: number): Draft | null {
+export function topUpFor(need: ReplenishmentNeed, units: number): OptionDraft | null {
   if (units <= 0) return null;
   const orders = need.suppliers.filter((s) => s.availability !== "backorder").map((s) => supplierOrder(need, s, units));
   const onTime = orders.filter((o) => o.arrivesBeforeStockout).sort((a, b) => a.cost - b.cost);
@@ -125,14 +132,14 @@ function topUpFor(need: ReplenishmentNeed, units: number): Draft | null {
 }
 
 /** Cost to cover the WHOLE need: a partial option is charged for its top-up too. */
-function coverCost(need: ReplenishmentNeed, d: Draft): number {
+function coverCost(need: ReplenishmentNeed, d: OptionDraft): number {
   const remaining = need.unitsNeeded - d.units;
   if (d.kind === "ORDER_FROM_SUPPLIER" || remaining <= 0) return d.cost;
   return d.cost + (topUpFor(need, remaining)?.cost ?? Number.POSITIVE_INFINITY);
 }
 
-function pickReplenishment(need: ReplenishmentNeed, drafts: Draft[]): { pick: Draft; reason: string } {
-  const rank = (a: Draft, b: Draft) => coverCost(need, a) - coverCost(need, b) || KIND_ORDER[a.kind] - KIND_ORDER[b.kind];
+function pickReplenishment(need: ReplenishmentNeed, drafts: OptionDraft[]): { pick: OptionDraft; reason: string } {
+  const rank = (a: OptionDraft, b: OptionDraft) => coverCost(need, a) - coverCost(need, b) || KIND_ORDER[a.kind] - KIND_ORDER[b.kind];
   const onTime = drafts.filter((d) => d.arrivesBeforeStockout).sort(rank);
   const first = onTime[0];
   const who = need.destination === NETWORK ? "the first store" : need.destination;
@@ -142,7 +149,7 @@ function pickReplenishment(need: ReplenishmentNeed, drafts: Draft[]): { pick: Dr
     return {
       pick: first,
       reason:
-        `Cheapest way to cover ${need.unitsNeeded} units before ${who} runs out on ${need.stockoutDate}` +
+        `Cheapest way to cover ${need.unitsNeeded} units before ${who} runs out on ${formatShortDate(need.stockoutDate)}` +
         (topUp ? `; top up ${topUp.units} from ${topUp.from}.` : "."),
     };
   }
@@ -152,7 +159,7 @@ function pickReplenishment(need: ReplenishmentNeed, drafts: Draft[]): { pick: Dr
     .sort((a, b) => (a.arrivalDate ?? "9999").localeCompare(b.arrivalDate ?? "9999") || rank(a, b))[0];
   const pick = fallback ?? drafts[0];
   if (!pick) throw new Error(`No options for ${need.sku}`);
-  return { pick, reason: `Nothing lands before the ${need.stockoutDate} stock-out; this is the earliest firm arrival.` };
+  return { pick, reason: `Nothing lands before the ${formatShortDate(need.stockoutDate)} stock-out; this is the earliest firm arrival.` };
 }
 
 function replenishSet(problem: Problem, need: ReplenishmentNeed): OptionSet {
@@ -189,8 +196,8 @@ function replenishSet(problem: Problem, need: ReplenishmentNeed): OptionSet {
 // Excess stock
 // ---------------------------------------------------------------------------
 
-function excessDrafts(excess: ExcessContext): Draft[] {
-  const drafts: Draft[] = excess.recipients.slice(0, 2).map((r): Draft => {
+function excessDrafts(excess: ExcessContext): OptionDraft[] {
+  const drafts: OptionDraft[] = excess.recipients.slice(0, 2).map((r): OptionDraft => {
     const units = Math.min(excess.excessUnits, r.units);
     return {
       kind: "TRANSFER_TO_STORE",
@@ -250,7 +257,7 @@ function excessDrafts(excess: ExcessContext): Draft[] {
   return drafts;
 }
 
-function pickExcess(excess: ExcessContext, drafts: Draft[]): { pick: Draft; reason: string } {
+function pickExcess(excess: ExcessContext, drafts: OptionDraft[]): { pick: OptionDraft; reason: string } {
   const transfer = drafts.filter((d) => d.kind === "TRANSFER_TO_STORE").sort((a, b) => b.units - a.units)[0];
   if (transfer) return { pick: transfer, reason: `Moves ${transfer.units} idle units to ${transfer.to}, which is short, for ${formatINR(transfer.cost)}.` };
   const cancel = drafts.find((d) => d.kind === "CANCEL_INBOUND_PO");

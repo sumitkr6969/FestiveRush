@@ -1,6 +1,5 @@
-import { PlaceholderPage } from "@/components/shell/placeholder-page";
-import { getNavItem } from "@/components/shell/nav";
+import { OverviewView } from "@/components/overview/overview-view";
 
 export default function OverviewPage() {
-  return <PlaceholderPage item={getNavItem("/")} />;
+  return <OverviewView />;
 }

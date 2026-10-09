@@ -1,11 +1,8 @@
 import type { Metadata } from "next";
-import { PlaceholderPage } from "@/components/shell/placeholder-page";
-import { getNavItem } from "@/components/shell/nav";
+import { StoresView } from "@/components/stores/stores-view";
 
-const item = getNavItem("/stores");
-
-export const metadata: Metadata = { title: item.label };
+export const metadata: Metadata = { title: "Store network" };
 
 export default function StoreNetworkPage() {
-  return <PlaceholderPage item={item} />;
+  return <StoresView />;
 }

@@ -5,6 +5,7 @@ import type { Problem, ProblemType } from "./decisionTypes";
 import { formatINR } from "./format";
 import { promotionsFor } from "./metrics";
 import {
+  cellFacts,
   cellsFor,
   daysLate,
   excessForCell,
@@ -12,6 +13,7 @@ import {
   inboundFor,
   isOverdue,
   needForCell,
+  networkFacts,
   networkNeed,
   shortfall,
   type DetectionInput,
@@ -20,13 +22,15 @@ import { loadSnapshot, type Snapshot } from "./snapshot";
 import { assessCells, bySeverity, type CellAssessment } from "./stockAnalyzer";
 import type { IsoDate } from "./types";
 
+/** What each detector produces; enrich() adds the fields every card shares. */
+type ProblemCore = Omit<Problem, "product" | "category" | "facts">;
 type Understocked = Extract<CellAssessment, { status: "understocked" }>;
 type Overstocked = Extract<CellAssessment, { status: "overstocked" }>;
 
 const inr = formatINR;
 const id = (type: ProblemType, ...parts: string[]) => [type, ...parts].join(":");
 
-function stockoutBeforeReplenishment(input: DetectionInput, c: Understocked): Problem | null {
+function stockoutBeforeReplenishment(input: DetectionInput, c: Understocked): ProblemCore | null {
   const inbound = inboundFor(input, c.sku);
   const overdue = input.purchaseOrders.filter((po) => po.sku === c.sku && isOverdue(po, input.asOf));
   // Earliest anything can land: the fastest supplier, or a valid PO plus the hop to the store.
@@ -53,7 +57,7 @@ function stockoutBeforeReplenishment(input: DetectionInput, c: Understocked): Pr
   };
 }
 
-function supplierTradeoff(input: DetectionInput, c: Understocked): Problem | null {
+function supplierTradeoff(input: DetectionInput, c: Understocked): ProblemCore | null {
   const usable = input.suppliers.filter((s) => s.sku === c.sku && s.availability !== "backorder");
   const byPrice = [...usable].sort((a, b) => a.purchase_price - b.purchase_price || a.lead_time_days - b.lead_time_days);
   const cheapest = byPrice[0];
@@ -84,7 +88,7 @@ function supplierTradeoff(input: DetectionInput, c: Understocked): Problem | nul
   };
 }
 
-function storeImbalance(input: DetectionInput, c: Understocked): Problem | null {
+function storeImbalance(input: DetectionInput, c: Understocked): ProblemCore | null {
   const need = needForCell(input, c);
   const donor = need.donors.find((d) => d.overstocked);
   if (!donor) return null;
@@ -108,7 +112,7 @@ function storeImbalance(input: DetectionInput, c: Understocked): Problem | null 
   };
 }
 
-function ageingStock(input: DetectionInput, c: Overstocked): Problem | null {
+function ageingStock(input: DetectionInput, c: Overstocked): ProblemCore | null {
   if (c.reason !== "aged") return null;
   const excess = excessForCell(input, c);
   return {
@@ -129,7 +133,7 @@ function ageingStock(input: DetectionInput, c: Overstocked): Problem | null {
   };
 }
 
-function cannibalization(input: DetectionInput, c: Overstocked): Problem | null {
+function cannibalization(input: DetectionInput, c: Overstocked): ProblemCore | null {
   if (c.reason !== "new_launch_cannibalized" || !c.cannibalizedBy) return null;
   const rate = (sku: string) => cellsFor(input, sku).reduce((sum, o) => sum + o.avgDailySales, 0);
   const newer = cellsFor(input, c.cannibalizedBy)[0];
@@ -155,9 +159,9 @@ function cannibalization(input: DetectionInput, c: Overstocked): Problem | null 
   };
 }
 
-function demandSpikes(input: DetectionInput, snapshot: Snapshot): Problem[] {
+function demandSpikes(input: DetectionInput, snapshot: Snapshot): ProblemCore[] {
   const end = horizonEnd(input.asOf);
-  return snapshot.products.flatMap((product): Problem[] => {
+  return snapshot.products.flatMap((product): ProblemCore[] => {
     const promo = promotionsFor(product, snapshot.promotions).find((p) => p.start <= end && p.end >= input.asOf);
     if (!promo) return [];
     const cells = cellsFor(input, product.sku);
@@ -192,10 +196,10 @@ function demandSpikes(input: DetectionInput, snapshot: Snapshot): Problem[] {
   });
 }
 
-function latePoGaps(input: DetectionInput): Problem[] {
+function latePoGaps(input: DetectionInput): ProblemCore[] {
   return input.purchaseOrders
     .filter((po) => isOverdue(po, input.asOf))
-    .map((po): Problem => {
+    .map((po): ProblemCore => {
       const cells = cellsFor(input, po.sku);
       const needed = cells.reduce((sum, c) => sum + shortfall(c), 0);
       const gap = Math.min(po.qty, needed);
@@ -207,10 +211,26 @@ function latePoGaps(input: DetectionInput): Problem[] {
         severity: critical ? "CRITICAL" : gap > 0 ? "HIGH" : "MEDIUM",
         sku: po.sku,
         evidence: { po: po.po, supplier: po.supplier, qty: po.qty, expectedDate: po.expected_date, daysLate: late, gapUnits: gap },
-        message: `${po.po} from ${po.supplier} is ${late} days late; ${gap} units of ${po.sku} are uncovered without it.`,
+        message: `${po.po} from ${po.supplier} is ${late} ${late === 1 ? "day" : "days"} late; ${gap} units of ${po.sku} are uncovered without it.`,
         context: { kind: "replenish", need: networkNeed(input, po.sku, gap, NETWORK) },
       };
     });
+}
+
+/** Adds what every card shows: product, category and the evidence-chip numbers. */
+function enrich(input: DetectionInput, p: ProblemCore): Problem {
+  const cell = p.store ? cellsFor(input, p.sku).find((c) => c.store === p.store) : cellsFor(input, p.sku)[0];
+  if (!cell) throw new Error(`No inventory for ${p.sku}`);
+  const cashAtRisk =
+    p.context.kind === "replenish"
+      ? p.context.need.unitsNeeded * p.context.need.sellingPrice
+      : p.context.excess.cashTiedUp;
+  return {
+    ...p,
+    product: cell.product,
+    category: cell.category,
+    facts: p.store ? cellFacts(cell, cashAtRisk) : networkFacts(input, p.sku, cashAtRisk),
+  };
 }
 
 const TYPE_ORDER: ProblemType[] = [
@@ -231,7 +251,7 @@ export function detectProblemsInSnapshot(snapshot: Snapshot): Problem[] {
     suppliers: snapshot.suppliers,
     purchaseOrders: snapshot.purchaseOrders,
   };
-  const problems: Problem[] = [];
+  const problems: ProblemCore[] = [];
   for (const c of cells) {
     if (c.status === "understocked") {
       for (const detect of [stockoutBeforeReplenishment, supplierTradeoff, storeImbalance]) {
@@ -246,7 +266,7 @@ export function detectProblemsInSnapshot(snapshot: Snapshot): Problem[] {
     }
   }
   problems.push(...demandSpikes(input, snapshot), ...latePoGaps(input));
-  return problems.sort(
+  return problems.map((p) => enrich(input, p)).sort(
     (a, b) =>
       bySeverity(a.severity, b.severity) ||
       TYPE_ORDER.indexOf(a.type) - TYPE_ORDER.indexOf(b.type) ||
