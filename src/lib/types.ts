@@ -24,7 +24,7 @@ export interface InventoryRow {
   ageing_days: number;
 }
 
-/** Days with zero sales have no row: a missing (date, sku, store) means 0 units. */
+/** One row per (date, sku, store) from launch onward; qty_sold may be 0. */
 export interface SalesRow {
   date: IsoDate;
   sku: string;
@@ -35,8 +35,9 @@ export interface SalesRow {
 }
 
 // Narrowed to the values schema.sql allows via CHECK ... IN (...).
-export type SupplierAvailability = "in_stock" | "limited" | "out_of_stock";
-export type PurchaseOrderStatus = "placed" | "in_transit" | "delayed" | "received" | "cancelled";
+export type SupplierAvailability = "in_stock" | "limited" | "backorder";
+/** `overdue` = not delivered and expected_date is already in the past. */
+export type PurchaseOrderStatus = "delivered" | "in_transit" | "overdue";
 
 export interface SupplierRow {
   supplier: string;

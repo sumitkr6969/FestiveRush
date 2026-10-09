@@ -24,20 +24,22 @@ export interface SeedData {
   promotions: PromotionRow[];
 }
 
-// Separate streams so tweaking inventory doesn't reshuffle every sales row.
+// Separate PRNG streams so tweaking one generator doesn't reshuffle the others.
 const SALES_SEED = 20261009;
 const INVENTORY_SEED = 9102026;
+const SUPPLIER_SEED = 4242;
 
-/** Pure: the same asOf always yields the same dataset. */
+/** Pure: the same asOf always yields the same dataset. Never uses Math.random. */
 export function buildSeedData(asOf: IsoDate): SeedData {
   const specs = productSpecs(asOf);
   const products = specs.map((s) => s.row);
   const promotions = buildPromotions(asOf);
+  const sales = generateSales(specs, promotions, asOf, createRng(SALES_SEED));
   return {
     products,
-    suppliers: buildSuppliers(products),
-    inventory: generateInventory(specs, promotions, asOf, createRng(INVENTORY_SEED)),
-    sales: generateSales(specs, promotions, asOf, createRng(SALES_SEED)),
+    suppliers: buildSuppliers(products, createRng(SUPPLIER_SEED)),
+    inventory: generateInventory(products, sales, asOf, createRng(INVENTORY_SEED)),
+    sales,
     purchaseOrders: buildPurchaseOrders(asOf),
     promotions,
   };

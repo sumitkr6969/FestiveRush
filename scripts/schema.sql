@@ -5,10 +5,10 @@
 --   * Dates are TEXT 'YYYY-MM-DD'. The CHECK date(x) IS x rejects any other shape,
 --     so string comparison and date() arithmetic in queries are always safe.
 --     It must be IS, not =: date() returns NULL for junk, and a NULL CHECK passes.
---   * Money is INR (REAL). `store` is a free-text store name; 'Central Warehouse'
---     is stored like any other store so stock can be compared across the network.
+--   * Money is INR (REAL). `store` is a free-text store name ('Store A' … 'Store L').
 --   * discount and expected_uplift are fractions (0.20 = 20%).
---   * sales has no row for a zero-sales day: missing (date, sku, store) = 0 units.
+--   * sales has one row per (date, sku, store) from the SKU's launch onward,
+--     including qty_sold = 0 days, so averages can divide by row count safely.
 
 PRAGMA foreign_keys = ON;
 
@@ -44,7 +44,7 @@ CREATE TABLE suppliers (
   purchase_price REAL NOT NULL CHECK (purchase_price >= 0),
   lead_time_days INTEGER NOT NULL CHECK (lead_time_days >= 0),
   moq            INTEGER NOT NULL CHECK (moq >= 1),
-  availability   TEXT NOT NULL CHECK (availability IN ('in_stock', 'limited', 'out_of_stock')),
+  availability   TEXT NOT NULL CHECK (availability IN ('in_stock', 'limited', 'backorder')),
   PRIMARY KEY (supplier, sku)
 );
 
@@ -55,7 +55,7 @@ CREATE TABLE purchase_orders (
   qty           INTEGER NOT NULL CHECK (qty > 0),
   expected_date DATE NOT NULL CHECK (date(expected_date) IS expected_date),
   status        TEXT NOT NULL
-                CHECK (status IN ('placed', 'in_transit', 'delayed', 'received', 'cancelled')),
+                CHECK (status IN ('delivered', 'in_transit', 'overdue')),
   FOREIGN KEY (supplier, sku) REFERENCES suppliers (supplier, sku)
 );
 
