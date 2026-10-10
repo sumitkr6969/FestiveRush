@@ -63,36 +63,51 @@ function vaultSkus(db: Database.Database): string[] {
   return (db.prepare("SELECT sku FROM products WHERE sku LIKE 'V-%'").all() as { sku: string }[]).map((r) => r.sku).filter(isVaultSku);
 }
 
+function toVaultProduct(
+  p: ProductRow,
+  inventory: readonly InventoryRow[],
+  suppliers: readonly SupplierRow[],
+  promos: readonly PromotionRow[],
+  asOf: IsoDate,
+): VaultProduct {
+  const inv = inventory.filter((i) => i.sku === p.sku).map((i) => ({ store: i.store, stock: i.stock, ageingDays: i.ageing_days }));
+  const { price, promotion } = counterPrice({ sku: p.sku, category: p.category, sellingPrice: p.selling_price }, promos, asOf);
+  return {
+    sku: p.sku,
+    product: p.product,
+    brand: p.brand,
+    category: p.category,
+    model: p.model,
+    sellingPrice: p.selling_price,
+    launchDate: p.launch_date,
+    counterPrice: price,
+    promotion: promotion ? { name: promotion.promotion, offer: promotion.discount } : null,
+    inventory: inv,
+    totalStock: inv.reduce((sum, i) => sum + i.stock, 0),
+    suppliers: suppliers.filter((x) => x.sku === p.sku),
+  };
+}
+
+/**
+ * products: the ones added in the vault (V- SKUs), the only ones the Billing counter sells
+ * and the vault can restock. datasetProducts: the imported catalogue from data/source,
+ * listed read-only so the vault shows everything the engine sees.
+ */
 export function listVault(db: Database.Database, asOf: IsoDate) {
   const promos = promotions(db);
-  const products = (db.prepare("SELECT * FROM products WHERE sku LIKE 'V-%' ORDER BY category, product").all() as ProductRow[]).filter((p) => isVaultSku(p.sku));
-  const inventory = db.prepare("SELECT * FROM inventory WHERE sku LIKE 'V-%' ORDER BY store").all() as InventoryRow[];
-  const suppliers = db.prepare("SELECT * FROM suppliers WHERE sku LIKE 'V-%' ORDER BY supplier").all() as SupplierRow[];
+  const all = db.prepare("SELECT * FROM products ORDER BY category, product").all() as ProductRow[];
+  const inventory = db.prepare("SELECT * FROM inventory ORDER BY store").all() as InventoryRow[];
+  const suppliers = db.prepare("SELECT * FROM suppliers ORDER BY supplier").all() as SupplierRow[];
   const orders = db.prepare("SELECT * FROM purchase_orders WHERE sku LIKE 'V-%' ORDER BY po").all() as PurchaseOrderRow[];
   const categories = (db.prepare("SELECT DISTINCT category FROM products ORDER BY category").all() as { category: string }[]).map((r) => r.category);
+  const map = (p: ProductRow) => toVaultProduct(p, inventory, suppliers, promos, asOf);
 
   return {
     asOf,
     stores: listStores(db),
     categories,
-    products: products.map((p): VaultProduct => {
-      const inv = inventory.filter((i) => i.sku === p.sku).map((i) => ({ store: i.store, stock: i.stock, ageingDays: i.ageing_days }));
-      const { price, promotion } = counterPrice({ sku: p.sku, category: p.category, sellingPrice: p.selling_price }, promos, asOf);
-      return {
-        sku: p.sku,
-        product: p.product,
-        brand: p.brand,
-        category: p.category,
-        model: p.model,
-        sellingPrice: p.selling_price,
-        launchDate: p.launch_date,
-        counterPrice: price,
-        promotion: promotion ? { name: promotion.promotion, offer: promotion.discount } : null,
-        inventory: inv,
-        totalStock: inv.reduce((s, i) => s + i.stock, 0),
-        suppliers: suppliers.filter((s) => s.sku === p.sku),
-      };
-    }),
+    products: all.filter((p) => isVaultSku(p.sku)).map(map),
+    datasetProducts: all.filter((p) => !isVaultSku(p.sku)).map(map),
     orders,
   };
 }

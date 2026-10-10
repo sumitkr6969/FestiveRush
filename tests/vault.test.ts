@@ -62,6 +62,21 @@ describe("vault rules", () => {
 });
 
 describe("product vault, billing counter and sold vault", () => {
+  it("lists the imported catalogue apart from the products the counter sells", () => {
+    const vault = listVault(db, TODAY);
+    expect(vault.datasetProducts).toHaveLength(151);
+    expect(vault.datasetProducts.every((p) => !p.sku.startsWith("V-"))).toBe(true);
+    expect(vault.products.every((p) => p.sku.startsWith("V-"))).toBe(true);
+    const tv = vault.datasetProducts.find((p) => p.sku === "TV-55Q7");
+    expect(tv?.inventory.find((i) => i.store === "Malleshwaram")?.stock).toBeGreaterThan(0);
+    expect(tv?.suppliers.length).toBeGreaterThan(0);
+  });
+
+  it("refuses stock and orders for imported products", () => {
+    expect(() => addStock(db, { sku: "TV-55Q7", store: "Jayanagar", quantity: 1, ageDays: 0 })).toThrow(VaultError);
+    expect(() => createOrder(db, { sku: "TV-55Q7", supplier: "Brand Direct", store: "Jayanagar", qty: 1 })).toThrow(VaultError);
+  });
+
   it("adds a product, then sells it at the counter", () => {
     const { sku } = createProduct(db, product({ name: "Counter Laptop", quantity: 6 }), TODAY);
     expect(sku).toMatch(/^V-LAP-\d{3}$/);
