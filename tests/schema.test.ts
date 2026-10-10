@@ -53,7 +53,7 @@ describe("schema.sql", () => {
 
   it("enforces foreign keys", () => {
     expect(() =>
-      db.prepare("INSERT INTO inventory VALUES ('NOPE', 'Store A', 1, 0)").run(),
+      db.prepare("INSERT INTO inventory VALUES ('NOPE', 'Koramangala', 1, 0)").run(),
     ).toThrow(/FOREIGN KEY/);
   });
 });

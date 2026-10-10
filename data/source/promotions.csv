@@ -1,0 +1,5 @@
+sku_or_category,promotion,start_date,end_date,discount,expected_uplift
+Televisions,Wedding Season TV Fest,2026-11-19,2026-11-26,10%,0.4
+Smartphones,Weekend Phone Deals,2026-11-07,2026-11-08,5%,0.25
+Accessories,Combo Offer,2026-10-17,2026-11-15,Buy 2 Get 10% off,0.15
+Air Conditioners,Winter Clearance,2026-11-30,2026-12-14,15%,0.3

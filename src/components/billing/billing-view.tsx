@@ -129,7 +129,12 @@ export function BillingView() {
                       <div className="flex items-center gap-3">
                         <div className="text-right tabular-nums">
                           <p className="font-medium">{formatINR(p.counterPrice)}</p>
-                          {p.promotion && <p className="text-xs text-muted-foreground"><span className="line-through">{formatINR(p.sellingPrice)}</span> {p.promotion.name} promo</p>}
+                          {p.promotion && (
+                            <p className="text-xs text-muted-foreground">
+                              {p.counterPrice < p.sellingPrice && <><span className="line-through">{formatINR(p.sellingPrice)}</span>{" "}</>}
+                              {p.promotion.name}: {p.promotion.offer}
+                            </p>
+                          )}
                         </div>
                         <Button size="sm" variant="outline" onClick={() => setQty(p, inCart(p.sku) + 1)} disabled={left <= 0} aria-label={`Add ${p.product} to the bill`}>
                           <Plus className="mr-1 h-3.5 w-3.5" aria-hidden="true" />

@@ -36,7 +36,7 @@ export function RejectDialog({ open, onOpenChange, onConfirm }: RejectDialogProp
               if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) confirm();
             }}
             rows={3}
-            placeholder="For example: Store B is holding stock for a corporate order"
+            placeholder="For example: Malleshwaram is holding stock for a corporate order"
             className="rounded-md border bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           />
         </label>

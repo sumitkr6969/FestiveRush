@@ -13,7 +13,7 @@ export interface DecideArgs {
   decision: "approve" | "reject";
   reason?: string;
   adjustment?: OptionAdjustment;
-  /** Short description for the toast, e.g. "Transfer 5 from Store B to Store A". */
+  /** Short description for the toast, e.g. "Transfer 11 from Malleshwaram to Koramangala". */
   summary: string;
 }
 

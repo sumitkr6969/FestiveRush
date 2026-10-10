@@ -5,6 +5,7 @@ import {
   CANNIBALIZATION_WINDOW_DAYS,
   OVERSTOCK_DAYS,
   TODAY,
+  WAREHOUSE_OVERSTOCK_DAYS,
 } from "./config";
 import { daysBetween } from "./dates";
 import { computeMetrics, type CellMetrics } from "./metrics";
@@ -29,14 +30,22 @@ export const bySeverity = (a: Severity, b: Severity) => SEVERITY_RANK[a] - SEVER
 
 function isOverstocked(c: CellMetrics): boolean {
   if (c.stock === 0) return false;
+  // Holding buffer stock is the warehouse's job, so it is only overstocked when the
+  // whole network is (or when its stock has aged, like any other location).
+  if (c.isWarehouse) {
+    return c.networkDaysOfStock > WAREHOUSE_OVERSTOCK_DAYS || (c.ageingDays > AGED_DAYS && c.networkDaysOfStock > OVERSTOCK_DAYS);
+  }
   // Aged stock needs less cover to be a problem: it's already losing value.
   return c.daysOfStock > OVERSTOCK_DAYS || (c.ageingDays > AGED_DAYS && c.daysOfStock > AGED_MIN_DAYS_OF_STOCK);
 }
 
 function isUnderstocked(c: CellMetrics): boolean {
-  // No demand means nothing to run out of.
-  if (c.avgDailySales === 0) return false;
-  return c.stock <= c.reorderPoint || c.stockoutInDays <= c.fastestLead;
+  // No demand means nothing to run out of; the warehouse sells nothing itself.
+  if (c.isWarehouse || c.avgDailySales === 0) return false;
+  // Runs out before even the slowest supplier could deliver: reordering is due now,
+  // while every supplier is still an option. Severity then says how bad (CRITICAL when
+  // even the fastest is too late, or the shelf is empty before a promotion starts).
+  return c.stock <= c.reorderPoint || c.stockoutInDays <= c.slowestLead;
 }
 
 function understockSeverity(c: CellMetrics): Severity {
@@ -48,13 +57,27 @@ function understockSeverity(c: CellMetrics): Severity {
 }
 
 /**
- * The newest same-brand, same-category SKU launched after this one within the
- * window that sells more across the network, or null.
+ * The product line a model belongs to: its code minus the last "-" segment, so
+ * INS15-G12 and INS15-G13 are both "INS15". Codes without a "-" (DE263, QA55Q7)
+ * name no line, and a SKU with no line has no successor to be cannibalised by.
+ */
+export function modelLine(model: string): string | null {
+  const cut = model.lastIndexOf("-");
+  return cut > 0 ? model.slice(0, cut).toUpperCase() : null;
+}
+
+/**
+ * The newest SKU of the same brand, category and model line, launched after this one
+ * within the window, that sells more across the network, or null. Brand and category
+ * alone would blame one new laptop for every older laptop of that brand.
  */
 function findCannibal(cell: CellMetrics, networkRate: Map<string, number>, cells: readonly CellMetrics[], asOf: IsoDate) {
+  const line = modelLine(cell.model);
+  if (!line) return null;
   const candidates = new Map<string, CellMetrics>();
   for (const other of cells) {
     if (
+      modelLine(other.model) === line &&
       other.brand === cell.brand &&
       other.category === cell.category &&
       other.launchDate > cell.launchDate &&
@@ -148,7 +171,8 @@ export function analyzeSnapshot(snapshot: Snapshot): StockAnalysis {
     balanced,
     summary: {
       totalSkus: new Set(cells.map((c) => c.sku)).size,
-      totalStores: new Set(cells.map((c) => c.store)).size,
+      // Selling stores only: the warehouse is a supply location.
+      totalStores: new Set(cells.filter((c) => !c.isWarehouse).map((c) => c.store)).size,
       totalOverstockedValue: overstocked.reduce((sum, o) => sum + o.cashTiedUp, 0),
       // Revenue lost if the projected two-week demand can't be served from stock.
       totalUnderstockedRisk: Math.round(

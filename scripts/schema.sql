@@ -1,14 +1,17 @@
 -- VoltKart Supply Intelligence schema.
--- EXACTLY 6 tables (CLAUDE.md hard rule 2). Do not add tables or columns.
+-- EXACTLY 6 tables (CLAUDE.md hard rule 2), one per CSV in data/source/.
+-- Columns mirror the CSV headers; scripts/seed-data/index.ts maps the few that differ.
 --
 -- Conventions:
 --   * Dates are TEXT 'YYYY-MM-DD'. The CHECK date(x) IS x rejects any other shape,
 --     so string comparison and date() arithmetic in queries are always safe.
 --     It must be IS, not =: date() returns NULL for junk, and a NULL CHECK passes.
---   * Money is INR (REAL). `store` is a free-text store name ('Store A' … 'Store L').
---   * discount and expected_uplift are fractions (0.20 = 20%).
---   * sales has one row per (date, sku, store) from the SKU's launch onward,
---     including qty_sold = 0 days, so averages can divide by row count safely.
+--   * Money is INR (REAL). `store` is a store name ('Koramangala' …) or the
+--     warehouse 'Central WH' (WAREHOUSE in src/lib/config.ts).
+--   * expected_uplift is a fraction (0.40 = +40% demand). discount is the
+--     promotion's own wording ('10%', 'Buy 2 Get 10% off') and is display-only.
+--   * sales only lists days with sales: a missing (date, sku, store) row means
+--     zero units, so averages divide by days, never by row count.
 
 PRAGMA foreign_keys = ON;
 
@@ -38,6 +41,7 @@ CREATE TABLE sales (
   selling_price REAL NOT NULL CHECK (selling_price >= 0)
 );
 
+-- availability is normalised from the CSV's 'In stock' / 'Limited' / 'Backorder'.
 CREATE TABLE suppliers (
   supplier       TEXT NOT NULL,
   sku            TEXT NOT NULL REFERENCES products (sku),
@@ -48,23 +52,25 @@ CREATE TABLE suppliers (
   PRIMARY KEY (supplier, sku)
 );
 
+-- status is the CSV's Received / Open / Confirmed, lower-cased. Whether a PO is late
+-- is derived from expected_date, never stored.
 CREATE TABLE purchase_orders (
   po            TEXT PRIMARY KEY,
   supplier      TEXT NOT NULL,
   sku           TEXT NOT NULL,
   qty           INTEGER NOT NULL CHECK (qty > 0),
   expected_date DATE NOT NULL CHECK (date(expected_date) IS expected_date),
-  status        TEXT NOT NULL
-                CHECK (status IN ('delivered', 'in_transit', 'overdue')),
+  status        TEXT NOT NULL CHECK (status IN ('received', 'open', 'confirmed')),
   FOREIGN KEY (supplier, sku) REFERENCES suppliers (supplier, sku)
 );
 
--- "start" and "end" are quoted because END is an SQL keyword.
+-- "start" and "end" (the CSV's start_date / end_date) are quoted because END is an SQL keyword.
 CREATE TABLE promotions (
   sku_or_category TEXT NOT NULL,
+  promotion       TEXT NOT NULL,
   "start"         DATE NOT NULL CHECK (date("start") IS "start"),
   "end"           DATE NOT NULL CHECK (date("end") IS "end" AND "end" >= "start"),
-  discount        REAL NOT NULL CHECK (discount >= 0 AND discount < 1),
+  discount        TEXT NOT NULL,
   expected_uplift REAL NOT NULL CHECK (expected_uplift >= 0)
 );
 

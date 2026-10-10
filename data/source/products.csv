@@ -1,0 +1,152 @@
+sku,product,brand,category,model,selling_price,launch_date
+SMA-SAM-101,Samsung Smartphone Lite 3,Samsung,Smartphones,SA833,46599,2026-03-04
+SMA-VIV-102,Vivo Smartphone Lite 4,Vivo,Smartphones,VI367,35399,2025-08-27
+SMA-ONE-103,OnePlus Smartphone X 8,OnePlus,Smartphones,ON922,28499,2025-03-11
+SMA-XIA-104,Xiaomi Smartphone Neo 5,Xiaomi,Smartphones,XI918,72699,2025-12-29
+SMA-ONE-105,OnePlus Smartphone Max 6,OnePlus,Smartphones,ON237,49799,2026-05-01
+SMA-ONE-106,OnePlus Smartphone Pro 6,OnePlus,Smartphones,ON966,84299,2026-05-11
+SMA-ONE-107,OnePlus Smartphone Neo 4,OnePlus,Smartphones,ON544,66499,2025-06-04
+SMA-SAM-108,Samsung Smartphone Max 3,Samsung,Smartphones,SA273,55199,2025-09-08
+SMA-APP-109,Apple Smartphone Lite 2,Apple,Smartphones,AP942,43399,2026-04-04
+SMA-APP-110,Apple Smartphone Max 2,Apple,Smartphones,AP241,25399,2024-12-26
+SMA-XIA-111,Xiaomi Smartphone Max 8,Xiaomi,Smartphones,XI628,65599,2025-09-18
+SMA-SAM-112,Samsung Smartphone Prime 1,Samsung,Smartphones,SA938,55099,2026-07-19
+SMA-SAM-113,Samsung Smartphone Pro 5,Samsung,Smartphones,SA180,51199,2025-05-22
+LAP-HP-114,HP Laptop Max 5,HP,Laptops,HP285,45899,2025-07-18
+LAP-DEL-115,Dell Laptop Plus 4,Dell,Laptops,DE263,112999,2025-04-12
+LAP-LEN-116,Lenovo Laptop Lite 5,Lenovo,Laptops,LE168,90399,2026-03-23
+LAP-LEN-117,Lenovo Laptop Plus 4,Lenovo,Laptops,LE609,58999,2025-01-16
+LAP-ACE-118,Acer Laptop Plus 4,Acer,Laptops,AC248,52199,2026-03-14
+LAP-HP-119,HP Laptop X 1,HP,Laptops,HP238,70399,2026-05-23
+LAP-ASU-120,Asus Laptop Pro 6,Asus,Laptops,AS275,82199,2026-03-15
+LAP-DEL-121,Dell Laptop Plus 2,Dell,Laptops,DE858,64299,2026-03-04
+LAP-DEL-122,Dell Laptop Plus 6,Dell,Laptops,DE407,94399,2025-06-25
+LAP-DEL-123,Dell Laptop Max 2,Dell,Laptops,DE532,99899,2026-02-01
+LAP-DEL-124,Dell Laptop Max 6,Dell,Laptops,DE584,78899,2026-05-11
+LAP-LEN-125,Lenovo Laptop X 3,Lenovo,Laptops,LE912,79699,2025-11-19
+LAP-LEN-126,Lenovo Laptop Neo 2,Lenovo,Laptops,LE383,110299,2026-05-03
+TEL-XIA-127,Xiaomi Television Max 6,Xiaomi,Televisions,XI545,18399,2026-03-11
+TEL-SAM-128,Samsung Television Prime 7,Samsung,Televisions,SA725,119499,2025-10-30
+TEL-TCL-129,TCL Television Pro 6,TCL,Televisions,TC996,116999,2026-04-28
+TEL-SON-130,Sony Television Lite 4,Sony,Televisions,SO859,58999,2025-04-17
+TEL-TCL-131,TCL Television Plus 1,TCL,Televisions,TC286,38799,2025-04-26
+TEL-XIA-132,Xiaomi Television X 8,Xiaomi,Televisions,XI904,107599,2025-01-28
+TEL-SAM-133,Samsung Television Max 2,Samsung,Televisions,SA674,48899,2025-03-17
+TEL-XIA-134,Xiaomi Television Neo 1,Xiaomi,Televisions,XI308,119999,2024-12-24
+TEL-SON-135,Sony Television Max 4,Sony,Televisions,SO353,46499,2025-09-26
+TEL-XIA-136,Xiaomi Television Lite 4,Xiaomi,Televisions,XI826,54899,2026-05-05
+TEL-TCL-137,TCL Television Max 5,TCL,Televisions,TC522,96699,2026-06-12
+TEL-LG-138,LG Television X 4,LG,Televisions,LG639,90699,2025-12-24
+TEL-SON-139,Sony Television Lite 5,Sony,Televisions,SO508,73299,2025-09-30
+REF-GOD-140,Godrej Refrigerator Max 7,Godrej,Refrigerators,GO879,30099,2025-04-25
+REF-LG-141,LG Refrigerator X 6,LG,Refrigerators,LG286,84899,2025-01-11
+REF-GOD-142,Godrej Refrigerator Prime 8,Godrej,Refrigerators,GO939,42199,2026-02-01
+REF-GOD-143,Godrej Refrigerator Plus 8,Godrej,Refrigerators,GO629,51299,2025-10-08
+REF-LG-144,LG Refrigerator Max 6,LG,Refrigerators,LG286,32599,2025-07-05
+REF-WHI-145,Whirlpool Refrigerator Neo 7,Whirlpool,Refrigerators,WH761,56999,2026-03-06
+REF-GOD-146,Godrej Refrigerator Neo 5,Godrej,Refrigerators,GO450,34399,2025-10-30
+REF-SAM-147,Samsung Refrigerator Prime 2,Samsung,Refrigerators,SA841,45199,2025-05-31
+REF-GOD-148,Godrej Refrigerator Plus 8,Godrej,Refrigerators,GO981,65799,2025-04-19
+REF-LG-149,LG Refrigerator X 2,LG,Refrigerators,LG194,27699,2026-05-20
+REF-LG-150,LG Refrigerator Plus 4,LG,Refrigerators,LG704,49399,2026-04-28
+REF-LG-151,LG Refrigerator Max 4,LG,Refrigerators,LG204,57499,2025-02-02
+REF-LG-152,LG Refrigerator Max 2,LG,Refrigerators,LG804,75799,2025-06-29
+WAS-IFB-153,IFB Washing Machine X 4,IFB,Washing Machines,IF157,22499,2025-05-21
+WAS-WHI-154,Whirlpool Washing Machine Prime 2,Whirlpool,Washing Machines,WH851,48399,2024-12-31
+WAS-LG-155,LG Washing Machine X 2,LG,Washing Machines,LG374,43999,2025-07-16
+WAS-SAM-156,Samsung Washing Machine Prime 2,Samsung,Washing Machines,SA963,27199,2025-08-26
+WAS-IFB-157,IFB Washing Machine X 7,IFB,Washing Machines,IF400,33499,2025-11-07
+WAS-BOS-158,Bosch Washing Machine Lite 3,Bosch,Washing Machines,BO862,33999,2025-02-02
+WAS-IFB-159,IFB Washing Machine Prime 5,IFB,Washing Machines,IF476,34699,2026-04-22
+WAS-LG-160,LG Washing Machine Prime 5,LG,Washing Machines,LG826,40199,2026-06-30
+WAS-WHI-161,Whirlpool Washing Machine Prime 1,Whirlpool,Washing Machines,WH362,17599,2025-11-05
+WAS-IFB-162,IFB Washing Machine X 8,IFB,Washing Machines,IF878,16699,2025-05-24
+WAS-SAM-163,Samsung Washing Machine Neo 8,Samsung,Washing Machines,SA938,41899,2025-12-10
+WAS-WHI-164,Whirlpool Washing Machine X 2,Whirlpool,Washing Machines,WH650,17099,2026-05-05
+WAS-BOS-165,Bosch Washing Machine Lite 1,Bosch,Washing Machines,BO423,42299,2025-06-13
+AIR-LG-166,LG Air Conditioner Prime 4,LG,Air Conditioners,LG830,50499,2025-11-10
+AIR-BLU-167,Blue Star Air Conditioner X 1,Blue Star,Air Conditioners,BL772,61599,2025-11-22
+AIR-LG-168,LG Air Conditioner Plus 1,LG,Air Conditioners,LG982,32999,2025-07-27
+AIR-LG-169,LG Air Conditioner Neo 3,LG,Air Conditioners,LG918,32099,2025-09-26
+AIR-LG-170,LG Air Conditioner Neo 8,LG,Air Conditioners,LG842,32399,2025-02-18
+AIR-LG-171,LG Air Conditioner Neo 4,LG,Air Conditioners,LG601,57699,2026-07-10
+AIR-DAI-172,Daikin Air Conditioner X 3,Daikin,Air Conditioners,DA860,58799,2026-01-31
+AIR-BLU-173,Blue Star Air Conditioner Prime 8,Blue Star,Air Conditioners,BL180,55399,2025-07-19
+AIR-VOL-174,Voltas Air Conditioner Lite 7,Voltas,Air Conditioners,VO851,37299,2025-06-07
+AIR-LG-175,LG Air Conditioner X 1,LG,Air Conditioners,LG452,45799,2025-06-08
+AIR-DAI-176,Daikin Air Conditioner Plus 2,Daikin,Air Conditioners,DA799,46999,2026-06-17
+AIR-VOL-177,Voltas Air Conditioner Prime 1,Voltas,Air Conditioners,VO412,34099,2026-03-04
+AIR-BLU-178,Blue Star Air Conditioner Lite 5,Blue Star,Air Conditioners,BL760,39199,2025-04-30
+HEA-SON-179,Sony Headphone Pro 8,Sony,Headphones,SO712,6599,2025-01-25
+HEA-JBL-180,JBL Headphone X 7,JBL,Headphones,JB545,20099,2025-12-17
+HEA-BOS-181,Bose Headphone Max 1,Bose,Headphones,BO527,9899,2025-11-15
+HEA-JBL-182,JBL Headphone Pro 4,JBL,Headphones,JB198,24899,2025-01-29
+HEA-BOA-183,boAt Headphone Prime 1,boAt,Headphones,BO541,4899,2025-09-18
+HEA-JBL-184,JBL Headphone Plus 2,JBL,Headphones,JB881,23399,2025-02-21
+HEA-JBL-185,JBL Headphone Neo 6,JBL,Headphones,JB214,12599,2026-04-07
+HEA-BOS-186,Bose Headphone Prime 7,Bose,Headphones,BO582,16099,2026-03-23
+HEA-JBL-187,JBL Headphone Neo 5,JBL,Headphones,JB408,23899,2024-12-26
+HEA-SON-188,Sony Headphone Neo 2,Sony,Headphones,SO936,4599,2025-10-11
+HEA-BOA-189,boAt Headphone Lite 1,boAt,Headphones,BO568,21299,2026-07-14
+HEA-BOS-190,Bose Headphone X 8,Bose,Headphones,BO597,28799,2026-05-06
+HEA-BOA-191,boAt Headphone Pro 7,boAt,Headphones,BO249,24999,2026-04-11
+SMA-AMA-192,Amazfit Smartwatche X 5,Amazfit,Smartwatches,AM795,40299,2025-11-20
+SMA-SAM-193,Samsung Smartwatche Prime 4,Samsung,Smartwatches,SA681,11499,2025-08-26
+SMA-NOI-194,Noise Smartwatche X 4,Noise,Smartwatches,NO432,3599,2026-04-28
+SMA-NOI-195,Noise Smartwatche Lite 5,Noise,Smartwatches,NO658,28799,2026-05-31
+SMA-SAM-196,Samsung Smartwatche Plus 6,Samsung,Smartwatches,SA289,18999,2025-09-03
+SMA-NOI-197,Noise Smartwatche Max 5,Noise,Smartwatches,NO394,8399,2025-12-01
+SMA-APP-198,Apple Smartwatche Lite 2,Apple,Smartwatches,AP653,26099,2026-06-22
+SMA-APP-199,Apple Smartwatche X 7,Apple,Smartwatches,AP330,38999,2025-10-11
+SMA-NOI-200,Noise Smartwatche Pro 5,Noise,Smartwatches,NO648,30299,2026-01-12
+SMA-SAM-201,Samsung Smartwatche Neo 1,Samsung,Smartwatches,SA782,5099,2025-03-04
+SMA-APP-202,Apple Smartwatche Lite 7,Apple,Smartwatches,AP925,26199,2024-12-23
+SMA-AMA-203,Amazfit Smartwatche Plus 5,Amazfit,Smartwatches,AM296,12899,2025-12-04
+SMA-APP-204,Apple Smartwatche Lite 4,Apple,Smartwatches,AP632,42499,2025-11-03
+CAM-SON-205,Sony Camera Plus 2,Sony,Cameras,SO706,57599,2025-05-17
+CAM-CAN-206,Canon Camera Prime 5,Canon,Cameras,CA233,67199,2026-07-01
+CAM-CAN-207,Canon Camera Neo 4,Canon,Cameras,CA468,96199,2025-06-01
+CAM-SON-208,Sony Camera Neo 6,Sony,Cameras,SO507,107499,2026-01-22
+CAM-NIK-209,Nikon Camera Max 2,Nikon,Cameras,NI960,68599,2025-04-12
+CAM-CAN-210,Canon Camera X 3,Canon,Cameras,CA867,83899,2026-02-12
+CAM-NIK-211,Nikon Camera Lite 2,Nikon,Cameras,NI139,105599,2025-12-16
+CAM-NIK-212,Nikon Camera Max 5,Nikon,Cameras,NI298,99499,2025-08-26
+CAM-CAN-213,Canon Camera X 6,Canon,Cameras,CA606,59599,2025-03-10
+CAM-CAN-214,Canon Camera Neo 6,Canon,Cameras,CA422,57299,2025-10-23
+CAM-NIK-215,Nikon Camera Max 8,Nikon,Cameras,NI442,42799,2026-01-30
+CAM-NIK-216,Nikon Camera X 3,Nikon,Cameras,NI827,86199,2025-11-03
+CAM-NIK-217,Nikon Camera Max 3,Nikon,Cameras,NI316,59199,2025-04-21
+GAM-MIC-218,Microsoft Gaming Max 5,Microsoft,Gaming,MI489,50999,2025-10-19
+GAM-SON-219,Sony Gaming Pro 6,Sony,Gaming,SO936,51399,2026-04-01
+GAM-NIN-220,Nintendo Gaming Prime 3,Nintendo,Gaming,NI285,43599,2026-05-13
+GAM-SON-221,Sony Gaming X 4,Sony,Gaming,SO231,43599,2024-12-23
+GAM-SON-222,Sony Gaming Plus 7,Sony,Gaming,SO154,54699,2025-01-06
+GAM-MIC-223,Microsoft Gaming Plus 7,Microsoft,Gaming,MI870,48399,2025-04-08
+GAM-NIN-224,Nintendo Gaming Lite 3,Nintendo,Gaming,NI579,31199,2025-03-29
+GAM-MIC-225,Microsoft Gaming Plus 4,Microsoft,Gaming,MI604,52399,2025-06-20
+GAM-NIN-226,Nintendo Gaming Lite 1,Nintendo,Gaming,NI480,34099,2026-01-08
+GAM-MIC-227,Microsoft Gaming Lite 5,Microsoft,Gaming,MI113,44899,2025-12-08
+GAM-NIN-228,Nintendo Gaming Plus 5,Nintendo,Gaming,NI124,49799,2025-07-13
+GAM-NIN-229,Nintendo Gaming Pro 5,Nintendo,Gaming,NI776,50199,2026-04-18
+GAM-MIC-230,Microsoft Gaming Plus 4,Microsoft,Gaming,MI280,30299,2025-01-28
+ACC-BEL-231,Belkin Accessorie Max 8,Belkin,Accessories,BE917,499,2026-02-27
+ACC-ANK-232,Anker Accessorie Max 3,Anker,Accessories,AN569,2599,2025-01-21
+ACC-ANK-233,Anker Accessorie Neo 1,Anker,Accessories,AN163,3399,2025-07-09
+ACC-BEL-234,Belkin Accessorie Neo 1,Belkin,Accessories,BE481,1499,2025-05-01
+ACC-POR-235,Portronics Accessorie Plus 7,Portronics,Accessories,PO161,599,2025-09-24
+ACC-POR-236,Portronics Accessorie Plus 2,Portronics,Accessories,PO671,499,2025-04-02
+ACC-ANK-237,Anker Accessorie X 8,Anker,Accessories,AN555,2899,2025-02-08
+ACC-BEL-238,Belkin Accessorie Neo 1,Belkin,Accessories,BE496,3199,2025-02-01
+ACC-ANK-239,Anker Accessorie Prime 4,Anker,Accessories,AN751,1199,2025-12-05
+ACC-MI-240,Mi Accessorie Lite 1,Mi,Accessories,MI207,3899,2025-09-09
+ACC-POR-241,Portronics Accessorie Prime 5,Portronics,Accessories,PO533,1599,2026-05-06
+ACC-POR-242,Portronics Accessorie Pro 8,Portronics,Accessories,PO756,1499,2026-03-30
+ACC-MI-243,Mi Accessorie Neo 7,Mi,Accessories,MI773,2599,2025-09-12
+TV-55Q7,Samsung 55-inch 4K QLED Smart TV Q7,Samsung,Televisions,QA55Q7,58990,2026-01-20
+REF-DD-190,Godrej 190L Direct Cool Refrigerator,Godrej,Refrigerators,RD190,15490,2025-06-14
+LAP-I5-G12,Dell Inspiron 15 i5 12th Gen,Dell,Laptops,INS15-G12,56990,2025-10-12
+LAP-I5-G13,Dell Inspiron 15 i5 13th Gen,Dell,Laptops,INS15-G13,59990,2026-10-27
+HP-ANC-700,Sony WH-700 Noise Cancelling Headphones,Sony,Headphones,WH700,19990,2026-03-11
+WM-FL-8KG,LG 8kg Front Load Washing Machine,LG,Washing Machines,FHM1408,36990,2025-12-21
+SW-FIT-3,Amazfit Fit 3 Smartwatch,Amazfit,Smartwatches,AF3,8999,2026-04-30
+TV-65U8,Xiaomi 65-inch 4K Ultra Smart TV U8,Xiaomi,Televisions,U8-65,64990,2025-11-01

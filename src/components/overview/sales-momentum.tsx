@@ -45,7 +45,7 @@ export function SalesMomentum() {
   const last = series[series.length - 1]?.date ?? "";
   const promos = (data?.promotions ?? [])
     .filter((p) => !category || p.sku_or_category === category)
-    .map((p) => ({ name: p.sku_or_category, x1: p.start < first ? first : p.start, x2: p.end > last ? last : p.end }))
+    .map((p) => ({ name: p.promotion, x1: p.start < first ? first : p.start, x2: p.end > last ? last : p.end }))
     .filter((p) => p.x1 <= p.x2);
   const totals = series.reduce((t, d) => ({ revenue: t.revenue + d.revenue, units: t.units + d.units }), { revenue: 0, units: 0 });
 

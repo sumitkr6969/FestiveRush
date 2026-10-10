@@ -1,0 +1,44 @@
+po,supplier,sku,qty,expected_date,status
+PO-8801,Ingram Micro India,SMA-SAM-108,26,2026-11-07,Received
+PO-8802,Brand Direct,LAP-LEN-125,12,2026-11-03,Received
+PO-8803,Ingram Micro India,TEL-TCL-129,15,2026-11-22,Open
+PO-8804,Brand Direct,LAP-LEN-126,27,2026-11-20,Open
+PO-8805,Redington India,CAM-CAN-210,27,2026-10-28,Received
+PO-8806,Supertron Electronics,CAM-CAN-207,17,2026-11-23,Open
+PO-8807,Savex Technologies,TEL-SON-139,26,2026-11-24,Confirmed
+PO-8808,Ingram Micro India,ACC-ANK-237,24,2026-11-24,Open
+PO-8809,Redington India,TEL-XIA-132,20,2026-11-20,Confirmed
+PO-8810,Savex Technologies,TEL-LG-138,13,2026-10-25,Received
+PO-8811,Reliance Digital Distribution,GAM-MIC-225,13,2026-11-03,Received
+PO-8812,Brand Direct,REF-GOD-146,10,2026-11-22,Confirmed
+PO-8813,Reliance Digital Distribution,AIR-VOL-174,25,2026-11-17,Confirmed
+PO-8814,Reliance Digital Distribution,GAM-MIC-223,12,2026-11-22,Open
+PO-8815,Redington India,SMA-SAM-113,20,2026-11-24,Confirmed
+PO-8816,Ingram Micro India,AIR-BLU-173,28,2026-11-17,Confirmed
+PO-8817,Redington India,TEL-SAM-128,17,2026-11-22,Confirmed
+PO-8818,Savex Technologies,REF-WHI-145,26,2026-11-19,Open
+PO-8819,Brand Direct,REF-GOD-142,22,2026-11-14,Received
+PO-8820,Reliance Digital Distribution,ACC-POR-241,11,2026-10-26,Received
+PO-8821,Ingram Micro India,ACC-POR-236,25,2026-11-18,Open
+PO-8822,Supertron Electronics,REF-GOD-148,20,2026-11-21,Open
+PO-8823,Supertron Electronics,LAP-DEL-115,25,2026-11-12,Received
+PO-8824,Supertron Electronics,REF-SAM-147,18,2026-11-19,Open
+PO-8825,Redington India,REF-LG-151,14,2026-11-21,Open
+PO-8826,Redington India,CAM-CAN-213,22,2026-11-20,Open
+PO-8827,Brand Direct,SMA-VIV-102,9,2026-10-31,Received
+PO-8828,Brand Direct,ACC-ANK-233,25,2026-11-24,Open
+PO-8829,Savex Technologies,REF-LG-150,22,2026-11-08,Received
+PO-8830,Supertron Electronics,SMA-SAM-112,14,2026-11-14,Received
+PO-8831,Savex Technologies,WAS-WHI-161,21,2026-11-20,Open
+PO-8832,Redington India,CAM-CAN-206,24,2026-10-25,Received
+PO-8833,Redington India,GAM-NIN-228,10,2026-11-06,Received
+PO-8834,Ingram Micro India,WAS-BOS-165,12,2026-11-25,Confirmed
+PO-8835,Savex Technologies,REF-GOD-143,16,2026-10-30,Received
+PO-8836,Redington India,HEA-SON-188,5,2026-11-17,Confirmed
+PO-8837,Savex Technologies,GAM-NIN-229,15,2026-11-18,Open
+PO-8838,Redington India,AIR-DAI-172,17,2026-11-22,Confirmed
+PO-8839,Brand Direct,AIR-LG-170,9,2026-11-13,Received
+PO-8840,Redington India,HEA-BOA-191,18,2026-10-26,Received
+PO-8851,Redington India,LAP-I5-G12,30,2026-11-21,Confirmed
+PO-8857,Reliance Digital Distribution,HP-ANC-700,40,2026-11-11,Open
+PO-8862,Redington India,TV-65U8,20,2026-11-20,Confirmed

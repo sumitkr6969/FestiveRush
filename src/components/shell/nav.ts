@@ -37,7 +37,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
   {
     href: "/stores",
     label: "Store network",
-    description: "Stock across all 12 stores.",
+    description: "Stock across the 6 stores and Central WH.",
     icon: Store,
   },
   {

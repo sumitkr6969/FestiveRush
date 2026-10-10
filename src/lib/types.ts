@@ -24,7 +24,7 @@ export interface InventoryRow {
   ageing_days: number;
 }
 
-/** One row per (date, sku, store) from launch onward; qty_sold may be 0. */
+/** Only days with sales are listed: a missing (date, sku, store) means 0 units. */
 export interface SalesRow {
   date: IsoDate;
   sku: string;
@@ -36,8 +36,8 @@ export interface SalesRow {
 
 // Narrowed to the values schema.sql allows via CHECK ... IN (...).
 export type SupplierAvailability = "in_stock" | "limited" | "backorder";
-/** `overdue` = not delivered and expected_date is already in the past. */
-export type PurchaseOrderStatus = "delivered" | "in_transit" | "overdue";
+/** Supplier-side state from the CSV. Lateness is derived from expected_date, not stored. */
+export type PurchaseOrderStatus = "received" | "open" | "confirmed";
 
 export interface SupplierRow {
   supplier: string;
@@ -59,13 +59,25 @@ export interface PurchaseOrderRow {
   status: PurchaseOrderStatus;
 }
 
+/** How the engine treats a PO today: received, still coming, or past its date and not here. */
+export type PoFlowStatus = "delivered" | "in_transit" | "overdue";
+
+/** A PO as the engine sees it: dates and flow derived from the stored row plus supplier updates (poStatus.ts). */
+export interface EffectivePurchaseOrder extends Omit<PurchaseOrderRow, "status"> {
+  status: PoFlowStatus;
+  /** The stored supplier-side status: Received, Open (not yet confirmed) or Confirmed. */
+  supplierStatus: PurchaseOrderStatus;
+}
+
 export interface PromotionRow {
   /** Either a product SKU or a category name. */
   sku_or_category: string;
+  /** Display name, e.g. "Wedding Season TV Fest". */
+  promotion: string;
   start: IsoDate;
   end: IsoDate;
-  /** Fraction: 0.20 = 20% off. */
-  discount: number;
+  /** The offer as worded in the data ("10%", "Buy 2 Get 10% off"). Display only. */
+  discount: string;
   /** Fraction: 0.40 = +40% demand while the promotion runs. */
   expected_uplift: number;
 }

@@ -136,7 +136,7 @@ export function VaultView() {
                             </td>
                             <td className={cn("p-3 text-right tabular-nums", oldest > AGED_DAYS && "font-medium text-warning-ink")}>{oldest}d</td>
                             <td className="p-3 text-right tabular-nums">
-                              {p.promotion ? (
+                              {p.counterPrice < p.sellingPrice ? (
                                 <>
                                   <span className="font-medium">{formatINR(p.counterPrice)}</span>
                                   <span className="block text-xs text-muted-foreground line-through">{formatINR(p.sellingPrice)}</span>

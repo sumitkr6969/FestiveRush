@@ -1,6 +1,6 @@
 # The Festival Rush: VoltKart Supply Intelligence
 
-An agentic supply-chain prototype for VoltKart Electronics (12 stores + central warehouse).
+An agentic supply-chain prototype for VoltKart Electronics (6 stores + Central WH).
 It watches sales, stock, suppliers, purchase orders and promotions, connects the facts,
 compares options, and recommends ONE action with a simulated action ready for human
 approval.
@@ -43,7 +43,7 @@ src/lib/stockAnalyzer.ts  stock clarification engine
 src/lib/problemDetector.ts  7 problem types
 src/lib/optionsEngine.ts  option comparison + single recommendation
 src/lib/actions.ts        simulated action drafts + decision log
-scripts/schema.sql, scripts/seed.ts
+scripts/schema.sql, scripts/seed.ts  (imports data/source/*.csv, the challenge dataset)
 tests/
 
 ## Design system (UI must follow this)

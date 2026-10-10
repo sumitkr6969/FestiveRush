@@ -46,9 +46,9 @@ export function writeSeed(db: Database.Database, data: SeedData): void {
     );
     insertMany(
       db,
-      'INSERT INTO promotions (sku_or_category, "start", "end", discount, expected_uplift) VALUES (?, ?, ?, ?, ?)',
+      'INSERT INTO promotions (sku_or_category, promotion, "start", "end", discount, expected_uplift) VALUES (?, ?, ?, ?, ?, ?)',
       data.promotions,
-      (r) => [r.sku_or_category, r.start, r.end, r.discount, r.expected_uplift],
+      (r) => [r.sku_or_category, r.promotion, r.start, r.end, r.discount, r.expected_uplift],
     );
   })();
 }

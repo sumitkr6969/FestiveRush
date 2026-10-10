@@ -5,35 +5,50 @@ import {
   VAULT_SKU_PREFIX,
   VAULT_SUPPLIER_DEFAULTS,
 } from "./config";
-import { promotionCovers } from "./promotions";
+import { flatDiscountRate, promotionCovers } from "./promotions";
 import type { IsoDate, PromotionRow, SupplierAvailability } from "./types";
 
 // Pure rules for the Product vault and Billing counter, shared by the forms (instant
 // feedback) and the API (the final say). No I/O here.
 
-/** Suggested categories; any other name starts a new group. */
-export const KNOWN_CATEGORIES = ["AC", "Earphones", "Laptop", "Mobile", "Refrigerator", "TV", "Washing Machine"];
+/** Suggested categories (the ones in data/source/products.csv); any other name starts a new group. */
+export const KNOWN_CATEGORIES = [
+  "Accessories", "Air Conditioners", "Cameras", "Gaming", "Headphones", "Laptops",
+  "Refrigerators", "Smartphones", "Smartwatches", "Televisions", "Washing Machines",
+];
 
-/** Purchase cost as a share of selling price, per category (same as the seed data). */
+/**
+ * Purchase cost as a share of selling price, per category: the average supplier price ÷
+ * selling price in suppliers.csv, rounded to two places.
+ */
 const COST_SHARE: Readonly<Record<string, number>> = {
-  TV: 0.78,
-  Laptop: 0.85,
-  Mobile: 0.86,
-  Earphones: 0.6,
-  AC: 0.8,
-  Refrigerator: 0.8,
-  "Washing Machine": 0.8,
+  Accessories: 0.77,
+  "Air Conditioners": 0.8,
+  Cameras: 0.8,
+  Gaming: 0.79,
+  Headphones: 0.78,
+  Laptops: 0.81,
+  Refrigerators: 0.78,
+  Smartphones: 0.79,
+  Smartwatches: 0.79,
+  Televisions: 0.8,
+  "Washing Machines": 0.8,
 };
 const DEFAULT_COST_SHARE = 0.8;
 
+/** SKU code per category, from the source SKUs (SMA is shared there, so smartwatches get SWT). */
 const CATEGORY_CODE: Readonly<Record<string, string>> = {
-  TV: "TV",
-  Laptop: "LP",
-  Mobile: "MB",
-  Earphones: "EP",
-  AC: "AC",
-  Refrigerator: "RF",
-  "Washing Machine": "WM",
+  Accessories: "ACC",
+  "Air Conditioners": "AIR",
+  Cameras: "CAM",
+  Gaming: "GAM",
+  Headphones: "HEA",
+  Laptops: "LAP",
+  Refrigerators: "REF",
+  Smartphones: "SMA",
+  Smartwatches: "SWT",
+  Televisions: "TEL",
+  "Washing Machines": "WAS",
 };
 
 const AVAILABILITY: SupplierAvailability[] = ["in_stock", "limited", "backorder"];
@@ -158,5 +173,6 @@ export function counterPrice(
   asOf: IsoDate,
 ): { price: number; promotion: PromotionRow | null } {
   const promo = promotions.find((p) => promotionCovers(p, product.sku, product.category) && p.start <= asOf && asOf <= p.end) ?? null;
-  return { price: promo ? Math.round(product.sellingPrice * (1 - promo.discount)) : product.sellingPrice, promotion: promo };
+  // Only a flat percentage changes the till price; "Buy 2 Get 10% off" stays with the cashier.
+  return { price: promo ? Math.round(product.sellingPrice * (1 - flatDiscountRate(promo.discount))) : product.sellingPrice, promotion: promo };
 }

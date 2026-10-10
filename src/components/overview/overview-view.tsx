@@ -75,7 +75,7 @@ export function OverviewView() {
                 value={<CountUp value={k.inventory.units} format={(n) => formatNumber(Math.round(n))} />}
                 detail={`units, ${formatCompactINR(k.inventory.value)} at cost`}
                 visual={<Sparkline values={k.inventory.unitsSoldByDay} label="Units sold per day, last 14 days" />}
-                explain="Units on hand across all 12 stores, valued at each SKU's cheapest supplier price. The line shows network units sold per day over the last 14 days."
+                explain="Units on hand across the 6 stores and Central WH, valued at each SKU's cheapest supplier price. The line shows network units sold per day over the last 14 days."
                 href="/signals?sort=cash"
               />
               <KpiCard

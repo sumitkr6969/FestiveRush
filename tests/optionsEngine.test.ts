@@ -9,45 +9,55 @@ import { openSeededDb } from "./helpers/seededDb";
 let cleanup: () => void;
 let db: Database.Database;
 let problems: Problem[];
-let storeA: OptionSet;
+let kora: OptionSet;
 
 beforeAll(() => {
   ({ db, cleanup } = openSeededDb());
   problems = detectProblems(db, TODAY);
-  const p = problems.find((x) => x.id === "STOCKOUT_BEFORE_REPLENISHMENT:TV-55-SM:Store A");
-  if (!p) throw new Error("Scenario problem missing");
-  storeA = buildOptions(p);
+  const p = problems.find((x) => x.id === "SUPPLIER_TRADEOFF:TV-55Q7:Koramangala");
+  if (!p) throw new Error("TV-55Q7 at Koramangala missing");
+  kora = buildOptions(p);
 });
 afterAll(() => cleanup());
 
-describe("buildOptions: TV-55-SM at Store A", () => {
-  it("only Supplier B arrives before the stock-out", () => {
-    const orders = storeA.options.filter((o) => o.kind === "ORDER_FROM_SUPPLIER");
-    expect(orders.map((o) => o.from).sort()).toEqual(["Supplier A", "Supplier B", "Supplier C"]);
-    expect(orders.filter((o) => o.arrivesBeforeStockout).map((o) => o.from)).toEqual(["Supplier B"]);
+describe("buildOptions: TV-55Q7 at Koramangala", () => {
+  it("only Redington India arrives before the stock-out", () => {
+    const orders = kora.options.filter((o) => o.kind === "ORDER_FROM_SUPPLIER");
+    expect(orders.map((o) => o.from).sort()).toEqual(["Brand Direct", "Redington India"]);
+    expect(orders.filter((o) => o.arrivesBeforeStockout).map((o) => o.from)).toEqual(["Redington India"]);
   });
 
-  it("recommends moving Store B's 5 spare units, topped up from Supplier B", () => {
-    const recommended = storeA.options.filter((o) => o.recommended);
+  it("recommends moving Malleshwaram's 11 spare units, topped up from Redington India", () => {
+    const recommended = kora.options.filter((o) => o.recommended);
     expect(recommended).toHaveLength(1);
     expect(recommended[0]).toMatchObject({
       kind: "TRANSFER_FROM_STORE",
-      from: "Store B",
-      to: "Store A",
-      units: 5,
+      from: "Malleshwaram",
+      to: "Koramangala",
+      units: 11,
+      cost: 6490, // 1% of the 58,990 rupee price per unit
+      arrivalDate: "2026-11-17",
       arrivesBeforeStockout: true,
     });
-    expect(recommended[0]?.reason).toMatch(/Supplier B/);
-    const p = problems.find((x) => x.id === storeA.problemId);
+    expect(recommended[0]?.reason).toMatch(/Redington India/);
+    const p = problems.find((x) => x.id === kora.problemId);
     const need = p?.context.kind === "replenish" ? p.context.need.unitsNeeded : 0;
-    expect(need).toBeGreaterThan(5);
-    expect(storeA.topUp).toMatchObject({ kind: "ORDER_FROM_SUPPLIER", from: "Supplier B", to: "Store A", units: need - 5 });
+    expect(need).toBe(26);
+    expect(kora.topUp).toMatchObject({ kind: "ORDER_FROM_SUPPLIER", from: "Redington India", to: "Koramangala", units: 15 });
     // Doing nothing loses every unit the store can't serve over the next 14 days.
-    expect(storeA.doNothing).toMatchObject({ units: need, cost: need * 45000 });
+    expect(kora.doNothing).toMatchObject({ units: 26, cost: 26 * 58990 });
   });
 
-  it("never offers to wait for the overdue PO", () => {
-    expect(storeA.options.some((o) => o.kind === "WAIT_FOR_PO")).toBe(false);
+  it("never offers to wait for an overdue PO", () => {
+    const late = problems.find((x) => x.id === "LATE_PO_GAP:PO-8857");
+    if (!late) throw new Error("PO-8857 missing");
+    expect(buildOptions(late).options.some((o) => o.kind === "WAIT_FOR_PO")).toBe(false);
+  });
+
+  it("offers to cancel the G12 order that is still coming", () => {
+    const g12 = problems.find((x) => x.id === "NEW_LAUNCH_CANNIBALIZATION:LAP-I5-G12:Central WH");
+    if (!g12) throw new Error("G12 missing");
+    expect(buildOptions(g12).options.find((o) => o.recommended)).toMatchObject({ kind: "CANCEL_INBOUND_PO", po: "PO-8851", units: 30 });
   });
 });
 

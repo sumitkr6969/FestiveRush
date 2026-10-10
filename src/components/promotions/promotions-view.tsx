@@ -7,7 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useApi } from "@/lib/client/useApi";
 import { addDays, daysBetween } from "@/lib/dates";
 import { formatShortDate } from "@/lib/format";
-import type { PromotionStatus } from "@/lib/promotions";
+import { offerLabel, type PromotionStatus } from "@/lib/promotions";
 import { cn } from "@/lib/utils";
 import type { PromotionsResponse } from "@/lib/views";
 
@@ -76,13 +76,14 @@ export function PromotionsView() {
                 return (
                   <li key={`${p.sku_or_category}-${p.start}`} className="flex flex-col gap-2 sm:flex-row sm:items-start sm:gap-4">
                     <div className="flex flex-col gap-1 sm:w-52 sm:shrink-0">
-                      <span className="font-semibold">{p.sku_or_category}</span>
+                      <span className="font-semibold">{p.promotion}</span>
+                      <span className="text-xs text-muted-foreground">{p.sku_or_category}</span>
                       <span className={cn("inline-flex w-fit items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium ring-1 ring-inset", s.className)}>
                         <Icon className="h-3.5 w-3.5" aria-hidden="true" />
                         {s.label(p)}
                       </span>
                       <span className="text-xs text-muted-foreground">
-                        {formatShortDate(p.start)} to {formatShortDate(p.end)} · +{Math.round(p.expected_uplift * 100)}% demand · {Math.round(p.discount * 100)}% off
+                        {formatShortDate(p.start)} to {formatShortDate(p.end)} · +{Math.round(p.expected_uplift * 100)}% demand · {offerLabel(p.discount)}
                       </span>
                     </div>
                     <div className="flex flex-1 flex-col gap-2">
@@ -92,7 +93,7 @@ export function PromotionsView() {
                           className={cn("absolute inset-y-1 rounded", s.bar)}
                           style={{ left: `${pos(p.start)}%`, width: `${Math.max(1, ((daysBetween(p.start, p.end) + 1) / span) * 100)}%` }}
                           role="img"
-                          aria-label={`${p.sku_or_category} runs ${formatShortDate(p.start)} to ${formatShortDate(p.end)}`}
+                          aria-label={`${p.promotion} runs ${formatShortDate(p.start)} to ${formatShortDate(p.end)}`}
                         />
                       </div>
                       <div className="flex flex-wrap items-center gap-1.5 text-xs">

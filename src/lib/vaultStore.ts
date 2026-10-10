@@ -26,7 +26,8 @@ export interface VaultProduct {
   sellingPrice: number;
   launchDate: IsoDate;
   counterPrice: number;
-  promotion: { name: string; discount: number } | null;
+  /** The running promotion: its name and its offer as worded ("10%", "Buy 2 Get 10% off"). */
+  promotion: { name: string; offer: string } | null;
   inventory: { store: string; stock: number; ageingDays: number }[];
   totalStock: number;
   suppliers: SupplierRow[];
@@ -55,7 +56,7 @@ export function listStores(db: Database.Database): string[] {
 }
 
 function promotions(db: Database.Database): PromotionRow[] {
-  return db.prepare(`SELECT sku_or_category, "start" AS start, "end" AS end, discount, expected_uplift FROM promotions`).all() as PromotionRow[];
+  return db.prepare(`SELECT sku_or_category, promotion, "start" AS start, "end" AS end, discount, expected_uplift FROM promotions`).all() as PromotionRow[];
 }
 
 function vaultSkus(db: Database.Database): string[] {
@@ -86,7 +87,7 @@ export function listVault(db: Database.Database, asOf: IsoDate) {
         sellingPrice: p.selling_price,
         launchDate: p.launch_date,
         counterPrice: price,
-        promotion: promotion ? { name: promotion.sku_or_category, discount: promotion.discount } : null,
+        promotion: promotion ? { name: promotion.promotion, offer: promotion.discount } : null,
         inventory: inv,
         totalStock: inv.reduce((s, i) => s + i.stock, 0),
         suppliers: suppliers.filter((s) => s.sku === p.sku),
@@ -152,7 +153,7 @@ export function addStock(db: Database.Database, raw: unknown): { sku: string; st
 }
 
 /** Records an incoming purchase order. A date already past makes it overdue straight away. */
-export function createOrder(db: Database.Database, raw: unknown, asOf: IsoDate): PurchaseOrderRow {
+export function createOrder(db: Database.Database, raw: unknown): PurchaseOrderRow {
   const r = rec(raw);
   const product = requireVaultProduct(db, r.sku);
   const supplier = typeof r.supplier === "string" ? r.supplier : "";
@@ -171,7 +172,8 @@ export function createOrder(db: Database.Database, raw: unknown, asOf: IsoDate):
     sku: product.sku,
     qty: r.quantity as number,
     expected_date: expected,
-    status: expected < asOf ? "overdue" : "in_transit",
+    // Placed here, not yet confirmed by the supplier. Lateness is derived from the date.
+    status: "open",
   };
   db.prepare("INSERT INTO purchase_orders (po, supplier, sku, qty, expected_date, status) VALUES (?, ?, ?, ?, ?, ?)").run(
     order.po,

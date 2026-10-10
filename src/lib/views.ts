@@ -1,4 +1,4 @@
-import { NO_SALES_DAYS_OF_STOCK, PROJECTION_DAYS } from "./config";
+import { NO_SALES_DAYS_OF_STOCK, PROJECTION_DAYS, WAREHOUSE } from "./config";
 import { addDays, daysBetween } from "./dates";
 import type { ProblemType } from "./decisionTypes";
 import type { EngineResult } from "./engine";
@@ -77,6 +77,10 @@ export function storesView(r: EngineResult) {
     ...r.analysis.balanced.map((i) => ({ ...i, status: "balanced" as CellStatus })),
   ];
 
+  // The warehouse sells nothing: its cover is measured against every store's sales of the SKU.
+  const networkRate = new Map<string, number>();
+  for (const i of items) if (i.store !== WAREHOUSE) networkRate.set(i.sku, (networkRate.get(i.sku) ?? 0) + i.avgDailySales);
+
   const heatmap = stores.flatMap((store) =>
     categories.map((category) => {
       const skus = items
@@ -84,7 +88,7 @@ export function storesView(r: EngineResult) {
         .map((i) => ({ sku: i.sku, product: i.product, stock: i.stock, avgDailySales: i.avgDailySales, daysOfStock: i.daysOfStock, status: i.status }))
         .sort((a, b) => a.daysOfStock - b.daysOfStock || a.sku.localeCompare(b.sku));
       const stock = skus.reduce((s, i) => s + i.stock, 0);
-      const rate = skus.reduce((s, i) => s + i.avgDailySales, 0);
+      const rate = skus.reduce((s, i) => s + (store === WAREHOUSE ? networkRate.get(i.sku) ?? 0 : i.avgDailySales), 0);
       return {
         store,
         category,

@@ -23,13 +23,13 @@ afterAll(() => cleanup());
 const option = (overrides: Partial<Option>): Option => ({
   id: "P:OPT",
   kind: "TRANSFER_FROM_STORE",
-  label: "Transfer 5 from Store B to Store A",
-  sku: "TV-55-SM",
-  from: "Store B",
-  to: "Store A",
-  units: 5,
-  cost: 2250,
-  arrivalDate: "2026-10-10",
+  label: "Transfer 11 from Malleshwaram to Koramangala",
+  sku: "TV-55Q7",
+  from: "Malleshwaram",
+  to: "Koramangala",
+  units: 11,
+  cost: 6490,
+  arrivalDate: "2026-11-17",
   arrivesBeforeStockout: true,
   moqOverbuy: 0,
   riskNote: null,
@@ -48,7 +48,7 @@ describe("createDraft", () => {
       [{ kind: "TRANSFER_TO_STORE" }, "TRANSFER"],
       [{ kind: "ORDER_FROM_SUPPLIER", supplierAvailability: "in_stock" }, "PO_DRAFT"],
       [{ kind: "ORDER_FROM_SUPPLIER", supplierAvailability: "limited" }, "SUPPLIER_ENQUIRY"],
-      [{ kind: "WAIT_FOR_PO", po: "PO-002" }, "ALERT"],
+      [{ kind: "WAIT_FOR_PO", po: "PO-8851" }, "ALERT"],
       [{ kind: "MARKDOWN_REVIEW" }, "ALERT"],
     ];
     for (const [overrides, kind] of cases) {
@@ -60,7 +60,7 @@ describe("createDraft", () => {
   });
 
   it("carries SKU, qty, from, to, cost and arrival", () => {
-    expect(draft).toMatchObject({ sku: "TV-55-SM", qty: 5, from: "Store B", to: "Store A", cost: 2250, expectedArrival: "2026-10-10" });
+    expect(draft).toMatchObject({ sku: "TV-55Q7", qty: 11, from: "Malleshwaram", to: "Koramangala", cost: 6490, expectedArrival: "2026-11-17" });
   });
 });
 
@@ -70,7 +70,7 @@ describe("decision log", () => {
     const a = log.record({ problemId: "P1", draftId: draft.id, decision: "approved" }, draft, AT);
     const r = log.record({ problemId: "P1", draftId: draft.id, decision: "rejected", reason: "Too costly" }, draft, AT);
     expect(a.id).toBe("D-0001");
-    expect(a.draft.qty).toBe(5);
+    expect(a.draft.qty).toBe(11);
     expect(r).toMatchObject({ id: "D-0002", decision: "rejected", reason: "Too costly" });
     expect(log.list()).toHaveLength(2);
     expect(log.persistent).toBe(false);
@@ -114,21 +114,21 @@ describe("decision log", () => {
 
 describe("parseDecision (POST /api/decisions)", () => {
   const scenario = () => {
-    const rec = engine.recommendations.find((r) => r.problem.id === "STOCKOUT_BEFORE_REPLENISHMENT:TV-55-SM:Store A");
+    const rec = engine.recommendations.find((r) => r.problem.id === "SUPPLIER_TRADEOFF:TV-55Q7:Koramangala");
     const recommended = rec?.drafts[0];
     if (!rec || !recommended) throw new Error("Scenario missing");
     return { rec, recommended };
   };
 
-  it("approves the recommended plan: the transfer and its Supplier B top-up", () => {
+  it("approves the recommended plan: the transfer and its Redington India top-up", () => {
     const { rec, recommended } = scenario();
     const parsed = parseDecision({ problemId: rec.problem.id, draftId: recommended.id, decision: "approve" }, engine.recommendations);
     expect(parsed.ok).toBe(true);
     if (!parsed.ok) return;
     expect(parsed.decision).toBe("approved");
     expect(parsed.drafts.map((d) => [d.kind, d.from, d.qty])).toEqual([
-      ["TRANSFER", "Store B", 5],
-      ["PO_DRAFT", "Supplier B", 27],
+      ["TRANSFER", "Malleshwaram", 11],
+      ["PO_DRAFT", "Redington India", 15],
     ]);
   });
 
@@ -140,8 +140,8 @@ describe("parseDecision (POST /api/decisions)", () => {
     );
     expect(parsed).toMatchObject({ ok: true, decision: "rejected", reason: "later" });
     if (!parsed.ok) return;
-    expect(parsed.drafts[0]).toMatchObject({ qty: 3, cost: 3 * 450 });
-    expect(parsed.drafts[1]?.qty).toBe(29);
+    expect(parsed.drafts[0]).toMatchObject({ qty: 3, cost: 3 * 590 });
+    expect(parsed.drafts[1]?.qty).toBe(23);
   });
 
   it("rejects bad input and unknown drafts", () => {
