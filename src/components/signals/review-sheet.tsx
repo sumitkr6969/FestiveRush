@@ -11,9 +11,10 @@ import { NO_SALES_DAYS_OF_STOCK, WAREHOUSE } from "@/lib/config";
 import type { Option, OptionAdjustment } from "@/lib/decisionTypes";
 import { createDraft } from "@/lib/drafts";
 import type { Recommendation } from "@/lib/engine";
-import { formatINR, formatNumber } from "@/lib/format";
+import { formatINR, formatNumber, formatShortDate } from "@/lib/format";
 import { runWhatIf, sourcesFor } from "@/lib/whatIf";
 import { DraftPreview } from "./draft-preview";
+import { LatePoPanel } from "./late-po-panel";
 import { OptionsTable } from "./options-table";
 import { RejectDialog } from "./reject-dialog";
 import { StockTimeline, type TimelineMarker } from "./stock-timeline";
@@ -49,7 +50,7 @@ function formatEvidence(key: string, value: string | number | boolean | null): s
     if (key === "expectedUplift") return `+${Math.round(value * 100)}%`;
     return formatNumber(value);
   }
-  return value;
+  return /^\d{4}-\d{2}-\d{2}$/.test(value) ? formatShortDate(value) : value;
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -200,6 +201,7 @@ export function ReviewSheet({ rec, related, position, onClose, onPrev, onNext, o
             </SheetHeader>
 
             <div className="flex-1 space-y-8 overflow-y-auto p-4 sm:p-6">
+              {p.type === "LATE_PO_GAP" && <LatePoPanel rec={rec} />}
               <Section title="Evidence">
                 <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm sm:grid-cols-3">
                   {Object.entries(p.evidence).map(([k, v]) => (

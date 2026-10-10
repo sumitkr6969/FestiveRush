@@ -76,7 +76,7 @@ export function SignalsView() {
           <EmptyState
             title="No signals match these filters"
             body="Try removing a filter or searching for a different SKU or store."
-            action={hasFilters(filters) ? <Button variant="outline" size="sm" onClick={() => navigate({ ...filters, severity: [], types: [], category: null, store: null, promo: null, q: "" }, null)}>Clear filters</Button> : undefined}
+            action={hasFilters(filters) ? <Button variant="outline" size="sm" onClick={() => navigate({ ...filters, severity: [], types: [], category: null, store: null, promo: null, vault: false, q: "" }, null)}>Clear filters</Button> : undefined}
           />
         )
       ) : (

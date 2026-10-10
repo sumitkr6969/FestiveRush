@@ -17,19 +17,27 @@ beforeAll(() => {
 afterAll(() => cleanup());
 
 describe("signal groups", () => {
-  it("groups the three views of Store A's TV shortage", () => {
+  it("groups every view of Store A's TV shortage, including the late PO that was meant to cover it", () => {
     const rec = engine.recommendations.find((r) => r.problem.id === STOCKOUT_A);
     if (!rec) throw new Error("Scenario missing");
-    expect(relatedSignals(rec, engine.recommendations).map((r) => r.problem.type).sort()).toEqual(["STORE_IMBALANCE", "SUPPLIER_TRADEOFF"]);
+    expect(relatedSignals(rec, engine.recommendations).map((r) => r.problem.type).sort()).toEqual([
+      "LATE_PO_GAP",
+      "STORE_IMBALANCE",
+      "SUPPLIER_TRADEOFF",
+    ]);
   });
 
   it("one decision settles the group, so the same transfer can't be approved twice", () => {
     const all = engine.recommendations;
     const open = openSignals(all, new Set([STOCKOUT_A]));
-    expect(open).toHaveLength(all.length - 3);
+    expect(open).toHaveLength(all.length - 4);
     expect(open.some((r) => r.problem.sku === "TV-55-SM" && r.problem.store === "Store A")).toBe(false);
-    // Network-wide signals for the same SKU stay open: they're a different decision.
+    // The network-wide promotion shortfall is a different decision and stays open.
     expect(open.some((r) => r.problem.id === "DEMAND_SPIKE:TV-55-SM")).toBe(true);
-    expect(open.some((r) => r.problem.id === "LATE_PO_GAP:PO-001")).toBe(true);
+  });
+
+  it("leads with the stock-out when several signals share the same plan", () => {
+    const storeA = engine.recommendations.filter((r) => r.problem.sku === "TV-55-SM" && r.problem.store === "Store A");
+    expect(storeA[0]?.problem.id).toBe(STOCKOUT_A);
   });
 });

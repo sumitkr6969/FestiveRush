@@ -76,8 +76,14 @@ export const EVIDENCE_LABEL: Record<string, string> = {
   supplier: "Supplier",
   qty: "Quantity",
   expectedDate: "Was due",
+  promisedDate: "Promised",
+  currentEta: "Supplier's latest ETA",
+  liveStatus: "Live status",
+  lastUpdate: "Supplier note",
   daysLate: "Days late",
   gapUnits: "Units uncovered",
+  firstStockoutStore: "Runs out first",
+  firstStockoutDate: "Runs out on",
 };
 
 /** Evidence keys whose numbers are rupees. */

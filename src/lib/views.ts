@@ -141,11 +141,15 @@ export function ordersView(r: EngineResult) {
     purchaseOrders: r.snapshot.purchaseOrders.map((po) => {
       const overdue = isOverdue(po, r.asOf);
       const leadDays = lead.get(`${po.supplier}|${po.sku}`) ?? null;
+      const live = r.snapshot.poLive[po.po] ?? null;
       return {
         ...po,
         product: products.get(po.sku) ?? po.sku,
+        // expected_date above is the live ETA; this is what the supplier first promised.
+        promisedDate: live?.promisedDate ?? po.expected_date,
+        live,
         overdue,
-        daysLate: overdue ? daysLate(po, r.asOf) : 0,
+        daysLate: live?.daysLate ?? (overdue ? daysLate(po, r.asOf) : 0),
         daysUntilDue: daysBetween(r.asOf, po.expected_date),
         // POs carry no order date; the supplier's lead time is the best estimate of the journey.
         leadDays,
