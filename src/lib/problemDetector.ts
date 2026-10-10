@@ -2,12 +2,12 @@ import type Database from "better-sqlite3";
 import { AGEING_HIGH_WEEKLY_LOSS, NETWORK, TRANSFER_LEAD_DAYS, TODAY } from "./config";
 import { daysBetween } from "./dates";
 import type { Problem, ProblemType } from "./decisionTypes";
-import { formatINR } from "./format";
+import { formatINR, formatShortDate } from "./format";
 import { promotionsFor } from "./metrics";
+import { PO_STATUS_LABEL } from "./poStatus";
 import {
   cellFacts,
   cellsFor,
-  daysLate,
   excessForCell,
   horizonEnd,
   inboundFor,
@@ -16,6 +16,7 @@ import {
   networkFacts,
   networkNeed,
   shortfall,
+  stockoutDate,
   type DetectionInput,
 } from "./problemContext";
 import { loadSnapshot, type Snapshot } from "./snapshot";
@@ -196,25 +197,61 @@ function demandSpikes(input: DetectionInput, snapshot: Snapshot): ProblemCore[] 
   });
 }
 
+const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
+
+/**
+ * A PO is late when the supplier's latest ETA is after the promised date, or the
+ * date has passed with no delivery. The problem targets the store that runs out
+ * first, so its options include moving stock from another store, and reorders
+ * from suppliers other than the late one.
+ */
 function latePoGaps(input: DetectionInput): ProblemCore[] {
-  return input.purchaseOrders
-    .filter((po) => isOverdue(po, input.asOf))
-    .map((po): ProblemCore => {
-      const cells = cellsFor(input, po.sku);
-      const needed = cells.reduce((sum, c) => sum + shortfall(c), 0);
-      const gap = Math.min(po.qty, needed);
-      const critical = cells.some((c) => c.status === "understocked" && c.severity === "CRITICAL");
-      const late = daysLate(po, input.asOf);
-      return {
-        id: id("LATE_PO_GAP", po.po),
-        type: "LATE_PO_GAP",
-        severity: critical ? "CRITICAL" : gap > 0 ? "HIGH" : "MEDIUM",
-        sku: po.sku,
-        evidence: { po: po.po, supplier: po.supplier, qty: po.qty, expectedDate: po.expected_date, daysLate: late, gapUnits: gap },
-        message: `${po.po} from ${po.supplier} is ${late} ${late === 1 ? "day" : "days"} late; ${gap} units of ${po.sku} are uncovered without it.`,
-        context: { kind: "replenish", need: networkNeed(input, po.sku, gap, NETWORK) },
-      };
-    });
+  return input.purchaseOrders.flatMap((po): ProblemCore[] => {
+    const live = input.poLive[po.po];
+    if (!live || live.state !== "late") return [];
+    const cells = cellsFor(input, po.sku);
+    const gap = Math.min(po.qty, cells.reduce((sum, c) => sum + shortfall(c), 0));
+    const target = cells.filter((c) => c.avgDailySales > 0).sort((a, b) => a.stockoutInDays - b.stockoutInDays || a.store.localeCompare(b.store))[0];
+
+    const etaDays = live.overdue ? Number.POSITIVE_INFINITY : daysBetween(input.asOf, live.currentEta);
+    // The PO lands centrally; the first store still needs one more transfer hop.
+    const runsOutFirst = target !== undefined && target.stockoutInDays <= etaDays + TRANSFER_LEAD_DAYS;
+    const severity = runsOutFirst ? "CRITICAL" : gap > 0 ? "HIGH" : "MEDIUM";
+
+    let need = target ? needForCell(input, target) : networkNeed(input, po.sku, gap, NETWORK);
+    // Suggest alternatives to the supplier that is already late, when there are enough of them.
+    const others = need.suppliers.filter((s) => s.supplier !== po.supplier);
+    if (others.length >= 2) need = { ...need, suppliers: others };
+
+    const status = live.latest ? PO_STATUS_LABEL[live.latest.status] : "No update from supplier";
+    const when = live.overdue
+      ? `is ${plural(live.daysLate, "day")} past its promised ${formatShortDate(live.promisedDate)} with no new date`
+      : `now arrives ${formatShortDate(live.currentEta)}, ${plural(live.daysLate, "day")} late`;
+    const impact = target && runsOutFirst ? `; ${target.store} runs out on ${formatShortDate(stockoutDate(input.asOf, target.stockoutInDays))}, before it lands` : "";
+
+    return [{
+      id: id("LATE_PO_GAP", po.po),
+      type: "LATE_PO_GAP",
+      severity,
+      sku: po.sku,
+      ...(target ? { store: target.store } : {}),
+      evidence: {
+        po: po.po,
+        supplier: po.supplier,
+        qty: po.qty,
+        promisedDate: live.promisedDate,
+        currentEta: live.overdue ? null : live.currentEta,
+        liveStatus: status,
+        lastUpdate: live.latest?.note ?? null,
+        daysLate: live.daysLate,
+        gapUnits: gap,
+        firstStockoutStore: target?.store ?? null,
+        firstStockoutDate: target ? stockoutDate(input.asOf, target.stockoutInDays) : null,
+      },
+      message: `${po.po} from ${po.supplier} ${when}${impact}.`,
+      context: { kind: "replenish", need },
+    }];
+  });
 }
 
 /** Adds what every card shows: product, category and the evidence-chip numbers. */
@@ -233,7 +270,7 @@ function enrich(input: DetectionInput, p: ProblemCore): Problem {
   };
 }
 
-const TYPE_ORDER: ProblemType[] = [
+export const TYPE_ORDER: ProblemType[] = [
   "STOCKOUT_BEFORE_REPLENISHMENT",
   "LATE_PO_GAP",
   "DEMAND_SPIKE",
@@ -250,6 +287,7 @@ export function detectProblemsInSnapshot(snapshot: Snapshot): Problem[] {
     cells,
     suppliers: snapshot.suppliers,
     purchaseOrders: snapshot.purchaseOrders,
+    poLive: snapshot.poLive,
   };
   const problems: ProblemCore[] = [];
   for (const c of cells) {

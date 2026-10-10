@@ -1,5 +1,6 @@
 "use client";
 
+import { Fragment } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useOpenSignals } from "@/lib/client/useSignals";
@@ -16,11 +17,15 @@ export function SidebarNav({ onNavigate }: SidebarNavProps) {
 
   return (
     <nav aria-label="Main" className="flex flex-col gap-1 p-3">
-      {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
+      {NAV_ITEMS.map(({ href, label, icon: Icon, group }, i) => {
         const active = isActive(pathname, href);
+        const firstOfGroup = group === "counter" && NAV_ITEMS[i - 1]?.group !== "counter";
         return (
+          <Fragment key={href}>
+          {firstOfGroup && (
+            <p className="mt-4 px-3 pb-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Store counter</p>
+          )}
           <Link
-            key={href}
             href={href}
             onClick={onNavigate}
             aria-current={active ? "page" : undefined}
@@ -42,6 +47,7 @@ export function SidebarNav({ onNavigate }: SidebarNavProps) {
               </span>
             )}
           </Link>
+          </Fragment>
         );
       })}
     </nav>

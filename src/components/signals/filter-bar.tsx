@@ -105,14 +105,15 @@ export function FilterBar({ filters, onChange, categories, stores, counts }: Fil
           ))}
         </div>
       </div>
-      {(hasFilters(filters) || filters.promo) && (
+      {hasFilters(filters) && (
         <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
           {filters.promo && <span>Promotion: {filters.promo}</span>}
+          {filters.vault && <span>Vault products only</span>}
           <Button
             variant="ghost"
             size="sm"
             className="h-7 px-2"
-            onClick={() => onChange({ severity: [], types: [], category: null, store: null, promo: null, q: "", sort: filters.sort })}
+            onClick={() => onChange({ severity: [], types: [], category: null, store: null, promo: null, vault: false, q: "", sort: filters.sort })}
           >
             <X className="mr-1 h-3.5 w-3.5" aria-hidden="true" />
             Clear filters

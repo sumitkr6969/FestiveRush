@@ -48,5 +48,21 @@ export const LOW_STOCK_DAYS = 7;
 export const PROMO_ENDING_SOON_DAYS = 3;
 /** A promotion starting within this many days is "starting soon". */
 export const PROMO_STARTING_SOON_DAYS = 7;
+// --- Product vault & billing counter -------------------------------------
+/** SKUs created in the Product vault start with this, so the vault pages can tell them apart. */
+export const VAULT_SKU_PREFIX = "V-";
+/**
+ * Default supplier terms for vault products, mirroring the seed data: faster costs more.
+ * priceFactor is relative to the standard cost (selling price x category cost share).
+ */
+export const VAULT_SUPPLIER_DEFAULTS = [
+  { supplier: "Supplier A", priceFactor: 1.0, leadDays: 7, moq: 10 },
+  { supplier: "Supplier B", priceFactor: 1.05, leadDays: 2, moq: 5 },
+  { supplier: "Supplier C", priceFactor: 0.96, leadDays: 12, moq: 25 },
+] as const;
+/** Upper bounds that keep typos (an extra zero) out of the data. */
+export const VAULT_MAX_PRICE = 10_000_000;
+export const VAULT_MAX_UNITS = 10_000;
+export const VAULT_MAX_AGE_DAYS = 3650;
 /** The options engine returns at most this many options per problem. */
 export const MAX_OPTIONS = 4;

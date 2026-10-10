@@ -1,6 +1,7 @@
 import type { ProblemType } from "@/lib/decisionTypes";
 import type { Recommendation } from "@/lib/engine";
 import { promotionCovers } from "@/lib/promotions";
+import { isVaultSku } from "@/lib/vault";
 import type { Severity } from "@/lib/types";
 import { TYPE_KEY } from "./labels";
 
@@ -14,6 +15,8 @@ export interface SignalFilters {
   category: string | null;
   store: string | null;
   promo: string | null;
+  /** Only signals about products added in the Product vault. */
+  vault: boolean;
   q: string;
   sort: SignalSort;
 }
@@ -34,6 +37,7 @@ export function parseFilters(params: URLSearchParams): SignalFilters {
     category: params.get("cat"),
     store: params.get("store"),
     promo: params.get("promo"),
+    vault: params.get("vault") === "1",
     q: params.get("q") ?? "",
     sort: sort === "cash" || sort === "days" ? sort : "urgency",
   };
@@ -47,6 +51,7 @@ export function toQuery(f: SignalFilters, review: string | null): string {
   if (f.category) p.set("cat", f.category);
   if (f.store) p.set("store", f.store);
   if (f.promo) p.set("promo", f.promo);
+  if (f.vault) p.set("vault", "1");
   if (f.q) p.set("q", f.q);
   if (f.sort !== "urgency") p.set("sort", f.sort);
   if (review) p.set("review", review);
@@ -55,7 +60,7 @@ export function toQuery(f: SignalFilters, review: string | null): string {
 }
 
 export function hasFilters(f: SignalFilters): boolean {
-  return Boolean(f.severity.length || f.types.length || f.category || f.store || f.promo || f.q);
+  return Boolean(f.severity.length || f.types.length || f.category || f.store || f.promo || f.vault || f.q);
 }
 
 function matchesText(rec: Recommendation, q: string): boolean {
@@ -75,6 +80,7 @@ export function applyFilters(recs: readonly Recommendation[], f: SignalFilters):
     if (f.types.length && !f.types.includes(p.type)) return false;
     if (f.category && p.category !== f.category) return false;
     if (f.store && p.store !== f.store) return false;
+    if (f.vault && !isVaultSku(p.sku)) return false;
     if (f.promo && !promotionCovers({ sku_or_category: f.promo }, p.sku, p.category)) return false;
     return matchesText(r, f.q);
   });

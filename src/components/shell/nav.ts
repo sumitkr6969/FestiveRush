@@ -2,7 +2,10 @@ import {
   Activity,
   ClipboardList,
   LayoutDashboard,
+  PackagePlus,
+  ReceiptText,
   ScrollText,
+  ShoppingCart,
   Store,
   Tag,
   type LucideIcon,
@@ -13,6 +16,8 @@ export interface NavItem {
   label: string;
   description: string;
   icon: LucideIcon;
+  /** Pages that change data (vault, billing) are grouped apart from the insight pages. */
+  group?: "counter";
 }
 
 // One list drives the sidebar, the mobile sheet and the breadcrumb.
@@ -32,7 +37,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
   {
     href: "/stores",
     label: "Store network",
-    description: "Stock across 12 stores and the central warehouse.",
+    description: "Stock across all 12 stores.",
     icon: Store,
   },
   {
@@ -52,6 +57,27 @@ export const NAV_ITEMS: readonly NavItem[] = [
     label: "Decisions log",
     description: "Every recommendation you approved or rejected.",
     icon: ScrollText,
+  },
+  {
+    href: "/vault",
+    label: "Product vault",
+    description: "Add products and stock, grouped by category.",
+    icon: PackagePlus,
+    group: "counter",
+  },
+  {
+    href: "/billing",
+    label: "Billing counter",
+    description: "Sell products from the vault.",
+    icon: ShoppingCart,
+    group: "counter",
+  },
+  {
+    href: "/sold",
+    label: "Sold vault",
+    description: "Every product sold at the counter.",
+    icon: ReceiptText,
+    group: "counter",
   },
 ];
 

@@ -6,6 +6,16 @@ import { useCallback, useEffect, useState } from "react";
 // several components can read one response without refetching.
 const cache = new Map<string, unknown>();
 const inflight = new Map<string, Promise<unknown>>();
+const reloaders = new Set<() => void>();
+
+/**
+ * After a vault or billing write every engine view is stale: drop the cache and
+ * refetch whatever is on screen, so signals and counters move straight away.
+ */
+export function invalidateApi(): void {
+  cache.clear();
+  for (const reload of reloaders) reload();
+}
 
 export async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
   const res = await fetch(url, init);
@@ -67,6 +77,14 @@ export function useApi<T>(url: string | null): ApiState<T> {
     if (url) cache.delete(url);
     setVersion((v) => v + 1);
   }, [url]);
+
+  useEffect(() => {
+    if (!url) return;
+    reloaders.add(reload);
+    return () => {
+      reloaders.delete(reload);
+    };
+  }, [url, reload]);
 
   return { data, error, loading, reload };
 }

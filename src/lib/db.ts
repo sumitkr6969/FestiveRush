@@ -23,6 +23,26 @@ export function getDb(): Database.Database {
   return runtimeDb;
 }
 
+let writableDb: Database.Database | null = null;
+
+/**
+ * Write handle for the Product vault, Billing counter and vault orders ONLY (a
+ * deliberate exception to the read-only rule, chosen by the product owner). The
+ * engine keeps reading through getDb(). On a read-only filesystem (Vercel) the
+ * first write fails and the API reports it instead of crashing.
+ */
+export function getWritableDb(): Database.Database {
+  if (writableDb) return writableDb;
+  if (!fs.existsSync(DB_PATH)) {
+    throw new Error(`Database not found at ${DB_PATH}. Run \`npm run seed\` first.`);
+  }
+  writableDb = new Database(DB_PATH, { fileMustExist: true });
+  writableDb.pragma("foreign_keys = ON");
+  // Several dev servers may share the file; wait briefly instead of failing on a lock.
+  writableDb.pragma("busy_timeout = 3000");
+  return writableDb;
+}
+
 /**
  * Seed script only. Deletes any existing file and builds a fresh database from
  * schema.sql, so every seed run is reproducible from scratch.

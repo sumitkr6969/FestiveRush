@@ -27,6 +27,9 @@ lucide-react (icons). Deployable to Vercel.
 4. Currency is INR, formatted with Intl.NumberFormat('en-IN').
 5. Vercel: the filesystem is read-only at runtime. Generate the SQLite file at build time
    (`npm run seed`) and open it with { readonly: true }. better-sqlite3 is server-side only.
+   Exception (product owner's decision): the Product vault, Billing counter and vault
+   orders write to the same 6 tables through `getWritableDb()` only. Vault SKUs start
+   with `V-`. On a read-only deployment those writes return 503. Re-seeding wipes them.
 6. No `any`. Small files. Comment the "why" of each formula.
 7. Always run `npm run lint`, `npm run typecheck` and `npm test` before saying a task is done.
 8. Nothing executes without human approval. Every action is labelled "Simulated".

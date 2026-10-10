@@ -59,6 +59,48 @@ function promoLine(p: Problem): string | null {
   return `The ${promo.name} promotion runs ${formatShortDate(promo.start)} to ${formatShortDate(promo.end)} at +${pct(promo.uplift)}, adding about ${p.facts.promoExtraUnits ?? 0} units of demand over the next 14 days.`;
 }
 
+const asDate = (v: unknown) => (typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v) ? formatShortDate(v) : null);
+
+/**
+ * The agent's suggestion for a signal, in plain sentences. Every number comes from
+ * the computed evidence and options; for a late PO it leads with the supplier's
+ * live status and what happens if we wait.
+ */
+export function agentSuggestion({ problem: p, optionSet }: ExplainableRec): string[] {
+  const lines: string[] = [];
+  const e = p.evidence;
+  if (p.type === "LATE_PO_GAP") {
+    const promised = asDate(e.promisedDate) ?? "the promised date";
+    const eta = asDate(e.currentEta);
+    lines.push(
+      eta
+        ? `${e.supplier} now expects to deliver ${e.po} on ${eta}, ${e.daysLate} ${e.daysLate === 1 ? "day" : "days"} after the promised ${promised}.`
+        : `${e.po} from ${e.supplier} is ${e.daysLate} ${e.daysLate === 1 ? "day" : "days"} past the promised ${promised} and there is no new date.`,
+    );
+    if (e.lastUpdate) lines.push(`Supplier note: "${String(e.lastUpdate)}".`);
+    const stockout = asDate(e.firstStockoutDate);
+    if (e.firstStockoutStore && stockout) lines.push(`${e.firstStockoutStore} runs out first, on ${stockout}.`);
+  }
+
+  const rec = optionSet.options.find((o) => o.recommended);
+  if (rec) {
+    const arrives = rec.arrivalDate ? `, arrives ${formatShortDate(rec.arrivalDate)}` : "";
+    lines.push(`Suggested instead: ${rec.label} (${formatINR(rec.cost)}${arrives}).`);
+    if (optionSet.topUp) lines.push(`Then: ${optionSet.topUp.label} (${formatINR(optionSet.topUp.cost)}).`);
+  }
+  const wait = optionSet.options.find((o) => o.kind === "WAIT_FOR_PO");
+  if (p.type === "LATE_PO_GAP") {
+    if (!wait) lines.push("Waiting isn't counted on: the PO has no confirmed future date.");
+    else lines.push(wait.arrivesBeforeStockout ? "Waiting for the PO still works: it lands before the stock-out." : "Waiting is risky: the PO lands after the stock-out.");
+  }
+  const onTime = optionSet.options.filter((o) => !o.recommended && o.kind !== "WAIT_FOR_PO" && o.arrivesBeforeStockout).map((o) => o.label);
+  if (onTime.length > 0) lines.push(`Also on time: ${onTime.join("; ")}.`);
+  const tooLate = optionSet.options.filter((o) => o.kind === "ORDER_FROM_SUPPLIER" && !o.arrivesBeforeStockout).map((o) => `${o.from}${o.arrivalDate ? ` (${formatShortDate(o.arrivalDate)})` : ""}`);
+  if (tooLate.length > 0) lines.push(`Too late to help: ${tooLate.join(", ")}.`);
+  lines.push(`Doing nothing: ${optionSet.doNothing.label.toLowerCase()}, ${formatINR(optionSet.doNothing.cost)}.`);
+  return lines;
+}
+
 export function explain(question: string, recs: readonly ExplainableRec[]): Explanation {
   const ranked = recs
     .map((rec, rank) => ({ rec, rank, s: score(question, rec.problem) }))

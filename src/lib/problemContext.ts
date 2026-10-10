@@ -8,6 +8,7 @@ import type {
   ReplenishmentNeed,
   SignalFacts,
 } from "./decisionTypes";
+import type { PoLive } from "./poStatus";
 import type { CellAssessment } from "./stockAnalyzer";
 import type { IsoDate, PromotionRow, PurchaseOrderRow, SupplierRow } from "./types";
 
@@ -17,6 +18,8 @@ export interface DetectionInput {
   cells: CellAssessment[];
   suppliers: SupplierRow[];
   purchaseOrders: PurchaseOrderRow[];
+  /** Live status per PO (promised vs latest ETA, supplier updates). */
+  poLive: Record<string, PoLive>;
 }
 
 /** Not delivered and its date hasn't passed: the only POs allowed to count as inbound. */
