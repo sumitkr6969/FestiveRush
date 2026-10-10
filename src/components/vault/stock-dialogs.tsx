@@ -70,7 +70,7 @@ export function StockDialogs({ action, stores, onClose }: StockDialogsProps) {
       toast.success(`Received ${qty} × ${product.product}`, { description: `${store} now holds ${(res.data as { stock: number }).stock}.` });
     } else {
       const po = res.data as PurchaseOrderRow;
-      toast.success(`${po.po} recorded`, { description: `${po.qty} × ${product.product} from ${po.supplier}, due ${formatShortDate(po.expected_date)}${po.status === "overdue" ? " (already overdue)" : ""}.` });
+      toast.success(`${po.po} recorded`, { description: `${po.qty} × ${product.product} from ${po.supplier}, due ${formatShortDate(po.expected_date)}${po.expected_date < TODAY ? " (already overdue)" : ""}.` });
     }
     onClose();
   };

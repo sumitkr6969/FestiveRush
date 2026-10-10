@@ -103,7 +103,7 @@ export function ProductForm({ open, onOpenChange, stores, categories }: ProductF
               <Input {...describedBy("p-company", errors.company)} value={draft.company} onChange={set("company")} placeholder="Korvi" />
             </Field>
             <Field id="p-category" label="Category" error={errors.category} hint="Pick one or type a new group">
-              <Input {...describedBy("p-category", errors.category, "Pick one or type a new group")} value={draft.category} onChange={set("category")} list="category-options" placeholder="Laptop" />
+              <Input {...describedBy("p-category", errors.category, "Pick one or type a new group")} value={draft.category} onChange={set("category")} list="category-options" placeholder="Laptops" />
               <datalist id="category-options">
                 {suggestions.map((c) => <option key={c} value={c} />)}
               </datalist>

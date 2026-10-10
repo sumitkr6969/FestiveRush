@@ -182,7 +182,7 @@ function demandSpikes(input: DetectionInput, snapshot: Snapshot): ProblemCore[] 
       severity: emptyBeforeStart ? "CRITICAL" : "HIGH",
       sku: product.sku,
       evidence: {
-        promotion: promo.sku_or_category,
+        promotion: promo.promotion,
         promotionStart: promo.start,
         promotionEnd: promo.end,
         expectedUplift: promo.expected_uplift,
@@ -191,7 +191,7 @@ function demandSpikes(input: DetectionInput, snapshot: Snapshot): ProblemCore[] 
         inboundUnits: inbound,
         shortfallUnits: short,
       },
-      message: `${product.product}: ${promo.sku_or_category} promotion (+${Math.round(promo.expected_uplift * 100)}%) needs ${short} more units than the network holds.`,
+      message: `${product.product}: ${promo.promotion} (+${Math.round(promo.expected_uplift * 100)}%) needs ${short} more units than the network holds.`,
       context: { kind: "replenish", need: networkNeed(input, product.sku, short, NETWORK) },
     }];
   });
@@ -256,7 +256,8 @@ function latePoGaps(input: DetectionInput): ProblemCore[] {
 
 /** Adds what every card shows: product, category and the evidence-chip numbers. */
 function enrich(input: DetectionInput, p: ProblemCore): Problem {
-  const cell = p.store ? cellsFor(input, p.sku).find((c) => c.store === p.store) : cellsFor(input, p.sku)[0];
+  // A store-level problem may sit at the warehouse, so look across every location.
+  const cell = p.store ? input.cells.find((c) => c.sku === p.sku && c.store === p.store) : cellsFor(input, p.sku)[0];
   if (!cell) throw new Error(`No inventory for ${p.sku}`);
   const cashAtRisk =
     p.context.kind === "replenish"

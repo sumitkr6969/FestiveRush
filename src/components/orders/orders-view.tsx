@@ -19,6 +19,13 @@ import { PoStatusDialog, type PoRef } from "./po-status-dialog";
 
 type Po = OrdersResponse["purchaseOrders"][number];
 
+/** The status column of purchase_orders.csv. Open means placed but not yet confirmed. */
+const SUPPLIER_STATUS: Record<Po["supplierStatus"], string> = {
+  open: "Unconfirmed",
+  confirmed: "Confirmed",
+  received: "Received",
+};
+
 /** Live status from the supplier: on time / late badge plus the latest update. */
 function LiveCell({ po }: { po: Po }) {
   if (!po.live) return null;
@@ -129,7 +136,12 @@ export function OrdersView() {
                         highlight === po.po && "ring-2 ring-inset ring-primary",
                       )}
                     >
-                      <TableCell className="font-medium">{po.po}</TableCell>
+                      <TableCell>
+                        <span className="block font-medium">{po.po}</span>
+                        <span className={cn("text-xs", po.supplierStatus === "open" && po.status !== "delivered" ? "text-warning-ink" : "text-muted-foreground")}>
+                          {SUPPLIER_STATUS[po.supplierStatus]}
+                        </span>
+                      </TableCell>
                       <TableCell>{po.supplier}</TableCell>
                       <TableCell>
                         <span className="block">{po.product}</span>

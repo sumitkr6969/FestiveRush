@@ -21,3 +21,20 @@ export function promotionStatus(p: PromotionRow, asOf: IsoDate): PromotionStatus
 export function promotionCovers(p: Pick<PromotionRow, "sku_or_category">, sku: string, category: string): boolean {
   return p.sku_or_category === sku || p.sku_or_category === category;
 }
+
+/** The offer as a label: a bare "10%" reads "10% off"; other wording is kept as given. */
+export function offerLabel(discount: string): string {
+  return /^\s*\d+(?:\.\d+)?\s*%\s*$/.test(discount) ? `${discount.trim()} off` : discount;
+}
+
+/**
+ * The price cut a promotion applies to any single sale: only a flat "10%" / "10% off".
+ * Conditional offers such as "Buy 2 Get 10% off" return 0, because they depend on the
+ * basket and are left for the cashier to apply.
+ */
+export function flatDiscountRate(discount: string): number {
+  const m = /^\s*(\d+(?:\.\d+)?)\s*%(?:\s*off)?\s*$/i.exec(discount);
+  if (!m) return 0;
+  const pct = Number(m[1]);
+  return pct > 0 && pct < 100 ? pct / 100 : 0;
+}

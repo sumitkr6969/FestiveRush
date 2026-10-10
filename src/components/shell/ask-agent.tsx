@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { useOpenSignals } from "@/lib/client/useSignals";
 import { explain, type Explanation } from "@/lib/explain";
 
-const SUGGESTIONS = ["Why Store A?", "Why Supplier B for TV-55-SM?", "Why is PO-001 a problem?", "Which stock is ageing?"];
+const SUGGESTIONS = ["Why Koramangala?", "Why Redington India for TV-55Q7?", "Why is PO-8857 a problem?", "Which stock is ageing?"];
 
 /**
  * Explains signals that are already computed. It restates the engine's own
@@ -49,7 +49,7 @@ export function AskAgent() {
           }}
         >
           <label className="sr-only" htmlFor="ask-input">Question</label>
-          <Input id="ask-input" value={question} onChange={(e) => setQuestion(e.target.value)} placeholder="Why Store A?" autoComplete="off" />
+          <Input id="ask-input" value={question} onChange={(e) => setQuestion(e.target.value)} placeholder="Why Koramangala?" autoComplete="off" />
           <Button type="submit" disabled={!data || !question.trim()}>Ask</Button>
         </form>
         <div className="flex flex-wrap gap-1.5">

@@ -26,7 +26,8 @@ export interface VaultProduct {
   sellingPrice: number;
   launchDate: IsoDate;
   counterPrice: number;
-  promotion: { name: string; discount: number } | null;
+  /** The running promotion: its name and its offer as worded ("10%", "Buy 2 Get 10% off"). */
+  promotion: { name: string; offer: string } | null;
   inventory: { store: string; stock: number; ageingDays: number }[];
   totalStock: number;
   suppliers: SupplierRow[];
@@ -55,43 +56,58 @@ export function listStores(db: Database.Database): string[] {
 }
 
 function promotions(db: Database.Database): PromotionRow[] {
-  return db.prepare(`SELECT sku_or_category, "start" AS start, "end" AS end, discount, expected_uplift FROM promotions`).all() as PromotionRow[];
+  return db.prepare(`SELECT sku_or_category, promotion, "start" AS start, "end" AS end, discount, expected_uplift FROM promotions`).all() as PromotionRow[];
 }
 
 function vaultSkus(db: Database.Database): string[] {
   return (db.prepare("SELECT sku FROM products WHERE sku LIKE 'V-%'").all() as { sku: string }[]).map((r) => r.sku).filter(isVaultSku);
 }
 
+function toVaultProduct(
+  p: ProductRow,
+  inventory: readonly InventoryRow[],
+  suppliers: readonly SupplierRow[],
+  promos: readonly PromotionRow[],
+  asOf: IsoDate,
+): VaultProduct {
+  const inv = inventory.filter((i) => i.sku === p.sku).map((i) => ({ store: i.store, stock: i.stock, ageingDays: i.ageing_days }));
+  const { price, promotion } = counterPrice({ sku: p.sku, category: p.category, sellingPrice: p.selling_price }, promos, asOf);
+  return {
+    sku: p.sku,
+    product: p.product,
+    brand: p.brand,
+    category: p.category,
+    model: p.model,
+    sellingPrice: p.selling_price,
+    launchDate: p.launch_date,
+    counterPrice: price,
+    promotion: promotion ? { name: promotion.promotion, offer: promotion.discount } : null,
+    inventory: inv,
+    totalStock: inv.reduce((sum, i) => sum + i.stock, 0),
+    suppliers: suppliers.filter((x) => x.sku === p.sku),
+  };
+}
+
+/**
+ * products: the ones added in the vault (V- SKUs), the only ones the Billing counter sells
+ * and the vault can restock. datasetProducts: the imported catalogue from data/source,
+ * listed read-only so the vault shows everything the engine sees.
+ */
 export function listVault(db: Database.Database, asOf: IsoDate) {
   const promos = promotions(db);
-  const products = (db.prepare("SELECT * FROM products WHERE sku LIKE 'V-%' ORDER BY category, product").all() as ProductRow[]).filter((p) => isVaultSku(p.sku));
-  const inventory = db.prepare("SELECT * FROM inventory WHERE sku LIKE 'V-%' ORDER BY store").all() as InventoryRow[];
-  const suppliers = db.prepare("SELECT * FROM suppliers WHERE sku LIKE 'V-%' ORDER BY supplier").all() as SupplierRow[];
+  const all = db.prepare("SELECT * FROM products ORDER BY category, product").all() as ProductRow[];
+  const inventory = db.prepare("SELECT * FROM inventory ORDER BY store").all() as InventoryRow[];
+  const suppliers = db.prepare("SELECT * FROM suppliers ORDER BY supplier").all() as SupplierRow[];
   const orders = db.prepare("SELECT * FROM purchase_orders WHERE sku LIKE 'V-%' ORDER BY po").all() as PurchaseOrderRow[];
   const categories = (db.prepare("SELECT DISTINCT category FROM products ORDER BY category").all() as { category: string }[]).map((r) => r.category);
+  const map = (p: ProductRow) => toVaultProduct(p, inventory, suppliers, promos, asOf);
 
   return {
     asOf,
     stores: listStores(db),
     categories,
-    products: products.map((p): VaultProduct => {
-      const inv = inventory.filter((i) => i.sku === p.sku).map((i) => ({ store: i.store, stock: i.stock, ageingDays: i.ageing_days }));
-      const { price, promotion } = counterPrice({ sku: p.sku, category: p.category, sellingPrice: p.selling_price }, promos, asOf);
-      return {
-        sku: p.sku,
-        product: p.product,
-        brand: p.brand,
-        category: p.category,
-        model: p.model,
-        sellingPrice: p.selling_price,
-        launchDate: p.launch_date,
-        counterPrice: price,
-        promotion: promotion ? { name: promotion.sku_or_category, discount: promotion.discount } : null,
-        inventory: inv,
-        totalStock: inv.reduce((s, i) => s + i.stock, 0),
-        suppliers: suppliers.filter((s) => s.sku === p.sku),
-      };
-    }),
+    products: all.filter((p) => isVaultSku(p.sku)).map(map),
+    datasetProducts: all.filter((p) => !isVaultSku(p.sku)).map(map),
     orders,
   };
 }
@@ -152,7 +168,7 @@ export function addStock(db: Database.Database, raw: unknown): { sku: string; st
 }
 
 /** Records an incoming purchase order. A date already past makes it overdue straight away. */
-export function createOrder(db: Database.Database, raw: unknown, asOf: IsoDate): PurchaseOrderRow {
+export function createOrder(db: Database.Database, raw: unknown): PurchaseOrderRow {
   const r = rec(raw);
   const product = requireVaultProduct(db, r.sku);
   const supplier = typeof r.supplier === "string" ? r.supplier : "";
@@ -171,7 +187,8 @@ export function createOrder(db: Database.Database, raw: unknown, asOf: IsoDate):
     sku: product.sku,
     qty: r.quantity as number,
     expected_date: expected,
-    status: expected < asOf ? "overdue" : "in_transit",
+    // Placed here, not yet confirmed by the supplier. Lateness is derived from the date.
+    status: "open",
   };
   db.prepare("INSERT INTO purchase_orders (po, supplier, sku, qty, expected_date, status) VALUES (?, ?, ?, ?, ?, ?)").run(
     order.po,

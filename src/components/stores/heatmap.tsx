@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { LOW_STOCK_DAYS, NO_SALES_DAYS_OF_STOCK, OVERSTOCK_DAYS } from "@/lib/config";
+import { LOW_STOCK_DAYS, NO_SALES_DAYS_OF_STOCK, OVERSTOCK_DAYS, WAREHOUSE, WAREHOUSE_OVERSTOCK_DAYS } from "@/lib/config";
 import { formatNumber } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { StoresResponse } from "@/lib/views";
@@ -10,10 +10,11 @@ export type HeatCell = StoresResponse["heatmap"][number];
 
 type Band = "low" | "healthy" | "over" | "none";
 
-export function bandOf(days: number): Band {
+/** The warehouse's cover is against all stores' sales, and it may hold more before it is "over". */
+export function bandOf(days: number, store?: string): Band {
   if (days >= NO_SALES_DAYS_OF_STOCK) return "none";
   if (days < LOW_STOCK_DAYS) return "low";
-  if (days > OVERSTOCK_DAYS) return "over";
+  if (days > (store === WAREHOUSE ? WAREHOUSE_OVERSTOCK_DAYS : OVERSTOCK_DAYS)) return "over";
   return "healthy";
 }
 
@@ -32,6 +33,7 @@ export function HeatLegend() {
       <li className="flex items-center gap-1.5"><span className={cn("h-3 w-4 rounded-sm", BAND.healthy.className)} />Healthy: {LOW_STOCK_DAYS} to {OVERSTOCK_DAYS} days</li>
       <li className="flex items-center gap-1.5"><span className={cn("h-3 w-4 rounded-sm", BAND.over.className)} />Overstock: over {OVERSTOCK_DAYS} days</li>
       <li className="flex items-center gap-1.5"><span className={cn("h-3 w-4 rounded-sm", BAND.none.className)} />No recent sales</li>
+      <li>{WAREHOUSE}: days of all stores&apos; sales it holds, overstock over {WAREHOUSE_OVERSTOCK_DAYS}</li>
     </ul>
   );
 }
@@ -46,7 +48,7 @@ export function Heatmap({ data, onCell }: HeatmapProps) {
   const cell = (store: string, category: string) => data.heatmap.find((c) => c.store === store && c.category === category);
   return (
     <div className="overflow-x-auto rounded-xl border bg-card shadow-sm">
-      <table className="w-full min-w-[720px] border-separate border-spacing-1 p-1 text-xs">
+      <table className="w-full min-w-[1080px] border-separate border-spacing-1 p-1 text-xs">
         <caption className="sr-only">Days of stock by store and category. Select a cell to list its SKUs.</caption>
         <thead>
           <tr>
@@ -68,7 +70,7 @@ export function Heatmap({ data, onCell }: HeatmapProps) {
               {data.categories.map((c) => {
                 const h = cell(s.store, c);
                 if (!h) return <td key={c} />;
-                const band = bandOf(h.daysOfStock);
+                const band = bandOf(h.daysOfStock, s.store);
                 const days = band === "none" ? "No sales" : `${formatNumber(h.daysOfStock)}d`;
                 return (
                   <td key={c} className="p-0">
@@ -84,7 +86,7 @@ export function Heatmap({ data, onCell }: HeatmapProps) {
                       <span className="font-semibold">{days}</span>
                       {/* Category averages can hide one SKU in trouble, so flag those SKUs explicitly. */}
                       {(h.understocked > 0 || h.overstocked > 0) && (
-                        <span className="mt-0.5 flex gap-1 text-[10px] font-semibold">
+                        <span className="mt-0.5 flex gap-1 whitespace-nowrap text-[10px] font-semibold">
                           {h.understocked > 0 && <span className="rounded bg-card px-1 text-critical-ink ring-1 ring-inset ring-critical/40">{h.understocked} low</span>}
                           {h.overstocked > 0 && <span className="rounded bg-card px-1 text-info-ink ring-1 ring-inset ring-info/40">{h.overstocked} over</span>}
                         </span>

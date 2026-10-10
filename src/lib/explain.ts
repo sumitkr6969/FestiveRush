@@ -25,13 +25,17 @@ const TOPIC_WORDS: Record<ProblemType, RegExp> = {
   AGEING_STOCK: /age|aged|ageing|aging|old stock|dust|markdown/i,
 };
 
-function score(question: string, p: Problem): number {
+/** Evidence fields that name a supplier, so "why Redington India?" finds the right signal. */
+const SUPPLIER_KEYS = ["supplier", "cheapestSupplier", "onTimeSupplier"] as const;
+
+/** stores: every store named by some signal, so naming one store counts against the others. */
+function score(question: string, p: Problem, stores: readonly string[]): number {
   const q = question.toLowerCase();
   let s = 0;
   if (q.includes(p.sku.toLowerCase())) s += 4;
-  const store = /store\s+([a-l])\b/i.exec(question)?.[1];
-  if (store && p.store?.toLowerCase() === `store ${store.toLowerCase()}`) s += 3;
-  if (store && p.store && p.store.toLowerCase() !== `store ${store.toLowerCase()}`) s -= 3;
+  const named = stores.filter((name) => q.includes(name.toLowerCase()));
+  if (named.length > 0 && p.store) s += named.includes(p.store) ? 3 : -3;
+  if (SUPPLIER_KEYS.some((k) => typeof p.evidence[k] === "string" && q.includes(String(p.evidence[k]).toLowerCase()))) s += 2;
   const po = /po-\d+/i.exec(question)?.[0];
   if (po && String(p.evidence.po ?? "").toLowerCase() === po.toLowerCase()) s += 4;
   for (const word of p.product.toLowerCase().split(/[^a-z0-9-]+/)) {
@@ -102,8 +106,9 @@ export function agentSuggestion({ problem: p, optionSet }: ExplainableRec): stri
 }
 
 export function explain(question: string, recs: readonly ExplainableRec[]): Explanation {
+  const stores = [...new Set(recs.flatMap((r) => (r.problem.store ? [r.problem.store] : [])))];
   const ranked = recs
-    .map((rec, rank) => ({ rec, rank, s: score(question, rec.problem) }))
+    .map((rec, rank) => ({ rec, rank, s: score(question, rec.problem, stores) }))
     .filter((x) => x.s > 0)
     .sort((a, b) => b.s - a.s || a.rank - b.rank);
   const best = ranked[0]?.rec;
@@ -112,7 +117,7 @@ export function explain(question: string, recs: readonly ExplainableRec[]): Expl
       problemId: null,
       lines: [
         "I can only explain signals the engine has already computed.",
-        'Try naming a store, SKU or PO, for example "Why Store A?" or "Why Supplier B for TV-55-SM?"',
+        'Try naming a store, SKU or PO, for example "Why Koramangala?" or "Why Redington India for TV-55Q7?"',
       ],
     };
   }

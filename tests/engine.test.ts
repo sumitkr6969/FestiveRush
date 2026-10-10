@@ -30,9 +30,10 @@ describe("runEngine", () => {
     }
   });
 
-  it("surfaces the TV-55-SM stock-out among the top recommendations", () => {
+  it("leads with the headphone stock-out the late PO-8857 was meant to prevent", () => {
     const top = result.recommendations.slice(0, 5).map((r) => r.problem.id);
-    expect(top).toContain("STOCKOUT_BEFORE_REPLENISHMENT:TV-55-SM:Store A");
+    expect(top.slice(0, 2)).toEqual(["STOCKOUT_BEFORE_REPLENISHMENT:HP-ANC-700:Indiranagar", "LATE_PO_GAP:PO-8857"]);
+    expect(top).toContain("DEMAND_SPIKE:TV-55Q7");
   });
 
   it("drafts every option (plus the top-up) as simulated", () => {

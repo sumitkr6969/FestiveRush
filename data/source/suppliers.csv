@@ -1,0 +1,232 @@
+supplier,sku,purchase_price,lead_time_days,moq,availability
+Brand Direct,ACC-ANK-232,1957,10,10,Limited
+Supertron Electronics,ACC-ANK-232,2035,10,1,In stock
+Brand Direct,ACC-ANK-233,2637,5,1,In stock
+Ingram Micro India,ACC-ANK-237,2250,2,5,In stock
+Supertron Electronics,ACC-ANK-239,927,2,5,In stock
+Brand Direct,ACC-BEL-231,362,2,2,In stock
+Reliance Digital Distribution,ACC-BEL-231,376,5,10,In stock
+Ingram Micro India,ACC-BEL-234,1227,7,10,Limited
+Ingram Micro India,ACC-BEL-238,2458,2,10,Limited
+Brand Direct,ACC-MI-240,2849,3,2,In stock
+Ingram Micro India,ACC-MI-243,2058,3,5,In stock
+Redington India,ACC-POR-235,463,7,5,In stock
+Ingram Micro India,ACC-POR-236,377,2,10,In stock
+Savex Technologies,ACC-POR-236,392,10,5,In stock
+Brand Direct,ACC-POR-241,1225,10,10,In stock
+Reliance Digital Distribution,ACC-POR-241,1178,7,10,In stock
+Ingram Micro India,ACC-POR-242,1243,10,2,In stock
+Supertron Electronics,ACC-POR-242,1195,5,2,In stock
+Brand Direct,AIR-BLU-167,49065,10,10,Limited
+Supertron Electronics,AIR-BLU-167,51028,3,2,In stock
+Ingram Micro India,AIR-BLU-173,46717,10,1,In stock
+Supertron Electronics,AIR-BLU-173,48586,7,1,In stock
+Brand Direct,AIR-BLU-178,30894,3,1,In stock
+Redington India,AIR-DAI-172,48370,3,5,Limited
+Reliance Digital Distribution,AIR-DAI-172,50305,10,2,In stock
+Brand Direct,AIR-DAI-176,40068,7,2,In stock
+Reliance Digital Distribution,AIR-DAI-176,38527,10,5,In stock
+Ingram Micro India,AIR-LG-166,39045,5,10,Limited
+Redington India,AIR-LG-168,24803,5,1,Limited
+Savex Technologies,AIR-LG-168,23849,2,10,Limited
+Supertron Electronics,AIR-LG-169,26685,5,2,In stock
+Brand Direct,AIR-LG-170,23882,7,1,In stock
+Supertron Electronics,AIR-LG-170,24837,3,10,In stock
+Reliance Digital Distribution,AIR-LG-171,47719,3,2,Limited
+Savex Technologies,AIR-LG-175,35314,10,2,In stock
+Supertron Electronics,AIR-LG-175,33955,2,2,Limited
+Reliance Digital Distribution,AIR-VOL-174,27678,10,5,In stock
+Savex Technologies,AIR-VOL-174,28785,3,1,Limited
+Redington India,AIR-VOL-177,26689,7,5,Limited
+Savex Technologies,AIR-VOL-177,25662,2,10,In stock
+Redington India,CAM-CAN-206,51201,10,5,Limited
+Supertron Electronics,CAM-CAN-207,77706,5,1,Limited
+Redington India,CAM-CAN-210,67704,2,1,In stock
+Redington India,CAM-CAN-213,50283,3,1,Limited
+Reliance Digital Distribution,CAM-CAN-213,52294,3,2,In stock
+Redington India,CAM-CAN-214,50086,5,2,Limited
+Savex Technologies,CAM-CAN-214,48159,2,2,Limited
+Ingram Micro India,CAM-NIK-209,57924,2,10,In stock
+Savex Technologies,CAM-NIK-209,60241,5,2,In stock
+Supertron Electronics,CAM-NIK-211,85452,3,2,In stock
+Redington India,CAM-NIK-212,72273,10,5,In stock
+Supertron Electronics,CAM-NIK-212,75164,5,2,Limited
+Brand Direct,CAM-NIK-215,33215,7,10,In stock
+Ingram Micro India,CAM-NIK-215,34543,5,2,Limited
+Brand Direct,CAM-NIK-216,67763,10,5,In stock
+Redington India,CAM-NIK-217,50995,2,1,In stock
+Savex Technologies,CAM-NIK-217,49034,2,1,Limited
+Reliance Digital Distribution,CAM-SON-205,45496,2,5,In stock
+Savex Technologies,CAM-SON-208,78089,10,2,In stock
+Brand Direct,GAM-MIC-218,40514,3,2,In stock
+Redington India,GAM-MIC-218,42135,10,2,In stock
+Reliance Digital Distribution,GAM-MIC-223,40992,3,10,Limited
+Brand Direct,GAM-MIC-225,42848,2,2,Limited
+Reliance Digital Distribution,GAM-MIC-225,41200,5,2,In stock
+Reliance Digital Distribution,GAM-MIC-227,35359,2,5,In stock
+Supertron Electronics,GAM-MIC-227,36773,10,2,Limited
+Brand Direct,GAM-MIC-230,23236,10,2,Limited
+Savex Technologies,GAM-MIC-230,24165,3,10,In stock
+Supertron Electronics,GAM-NIN-220,32381,7,10,Limited
+Redington India,GAM-NIN-224,25810,10,1,In stock
+Ingram Micro India,GAM-NIN-226,27992,2,10,In stock
+Redington India,GAM-NIN-228,36297,10,10,In stock
+Reliance Digital Distribution,GAM-NIN-229,39224,10,10,In stock
+Savex Technologies,GAM-NIN-229,37716,10,5,In stock
+Redington India,GAM-SON-219,41590,7,5,In stock
+Savex Technologies,GAM-SON-221,34777,3,2,In stock
+Supertron Electronics,GAM-SON-221,36168,10,5,In stock
+Savex Technologies,GAM-SON-222,39813,7,5,In stock
+Redington India,HEA-BOA-183,3897,7,5,In stock
+Reliance Digital Distribution,HEA-BOA-183,4053,7,5,In stock
+Redington India,HEA-BOA-189,15710,3,5,In stock
+Ingram Micro India,HEA-BOA-191,19439,5,2,Limited
+Redington India,HEA-BOA-191,18691,2,2,Limited
+Ingram Micro India,HEA-BOS-181,7514,3,10,In stock
+Redington India,HEA-BOS-181,7225,2,1,In stock
+Reliance Digital Distribution,HEA-BOS-186,12118,7,5,In stock
+Savex Technologies,HEA-BOS-186,11652,10,5,In stock
+Ingram Micro India,HEA-BOS-190,23461,10,1,In stock
+Supertron Electronics,HEA-BOS-190,22558,5,1,Limited
+Savex Technologies,HEA-JBL-180,16221,3,10,In stock
+Supertron Electronics,HEA-JBL-182,19016,7,2,In stock
+Reliance Digital Distribution,HEA-JBL-184,19327,10,10,In stock
+Supertron Electronics,HEA-JBL-184,20100,2,10,In stock
+Brand Direct,HEA-JBL-185,10872,7,2,In stock
+Supertron Electronics,HEA-JBL-185,10454,3,2,Limited
+Reliance Digital Distribution,HEA-JBL-187,19967,2,2,Limited
+Supertron Electronics,HEA-JBL-187,19199,7,5,In stock
+Ingram Micro India,HEA-SON-179,4895,5,10,In stock
+Redington India,HEA-SON-188,3418,2,2,In stock
+Supertron Electronics,HEA-SON-188,3554,2,10,In stock
+Reliance Digital Distribution,HP-ANC-700,14652,7,2,In stock
+Brand Direct,LAP-ACE-118,43410,5,10,In stock
+Reliance Digital Distribution,LAP-ACE-118,45146,7,5,Limited
+Brand Direct,LAP-ASU-120,65542,7,1,In stock
+Ingram Micro India,LAP-ASU-120,68163,7,10,In stock
+Supertron Electronics,LAP-DEL-115,96025,10,5,Limited
+Brand Direct,LAP-DEL-121,56090,5,5,Limited
+Savex Technologies,LAP-DEL-121,53932,5,2,In stock
+Brand Direct,LAP-DEL-122,75539,10,1,In stock
+Redington India,LAP-DEL-123,77876,3,10,In stock
+Reliance Digital Distribution,LAP-DEL-123,74881,10,10,In stock
+Reliance Digital Distribution,LAP-DEL-124,64275,10,10,In stock
+Brand Direct,LAP-HP-114,35558,5,10,In stock
+Brand Direct,LAP-HP-119,58726,10,5,Limited
+Redington India,LAP-I5-G12,47313,7,1,Limited
+Supertron Electronics,LAP-I5-G13,49189,5,2,Limited
+Ingram Micro India,LAP-LEN-116,71301,2,10,In stock
+Redington India,LAP-LEN-116,74153,5,1,In stock
+Savex Technologies,LAP-LEN-117,44166,3,2,In stock
+Brand Direct,LAP-LEN-125,66295,3,2,In stock
+Redington India,LAP-LEN-125,68947,5,1,In stock
+Brand Direct,LAP-LEN-126,81121,2,2,Limited
+Redington India,REF-DD-190,12249,2,1,In stock
+Savex Technologies,REF-DD-190,12739,7,10,In stock
+Redington India,REF-GOD-140,22145,2,1,In stock
+Brand Direct,REF-GOD-142,31419,5,5,In stock
+Savex Technologies,REF-GOD-142,32676,2,1,Limited
+Reliance Digital Distribution,REF-GOD-143,41639,2,5,Limited
+Savex Technologies,REF-GOD-143,40037,5,5,In stock
+Brand Direct,REF-GOD-146,25063,5,5,Limited
+Supertron Electronics,REF-GOD-146,26066,5,2,Limited
+Ingram Micro India,REF-GOD-148,53671,7,2,In stock
+Supertron Electronics,REF-GOD-148,51607,5,2,In stock
+Brand Direct,REF-LG-141,61944,7,10,In stock
+Redington India,REF-LG-141,64422,5,1,In stock
+Brand Direct,REF-LG-144,24642,5,5,Limited
+Savex Technologies,REF-LG-144,23694,10,5,In stock
+Redington India,REF-LG-149,20554,3,1,In stock
+Savex Technologies,REF-LG-149,21376,10,10,In stock
+Reliance Digital Distribution,REF-LG-150,41362,7,2,Limited
+Savex Technologies,REF-LG-150,39771,7,1,In stock
+Redington India,REF-LG-151,48343,7,5,In stock
+Supertron Electronics,REF-LG-151,50276,3,5,In stock
+Redington India,REF-LG-152,58582,2,5,In stock
+Redington India,REF-SAM-147,35815,2,10,Limited
+Supertron Electronics,REF-SAM-147,34438,3,2,In stock
+Brand Direct,REF-WHI-145,43051,10,1,Limited
+Savex Technologies,REF-WHI-145,41395,7,5,In stock
+Ingram Micro India,SMA-AMA-192,29456,10,5,In stock
+Ingram Micro India,SMA-AMA-203,10624,2,2,In stock
+Redington India,SMA-APP-109,32524,3,2,In stock
+Savex Technologies,SMA-APP-109,33825,2,10,Limited
+Supertron Electronics,SMA-APP-110,20465,5,10,In stock
+Reliance Digital Distribution,SMA-APP-198,20672,2,5,In stock
+Savex Technologies,SMA-APP-198,19877,2,5,In stock
+Ingram Micro India,SMA-APP-199,29863,2,1,In stock
+Savex Technologies,SMA-APP-199,28714,7,2,In stock
+Reliance Digital Distribution,SMA-APP-202,23015,7,1,In stock
+Supertron Electronics,SMA-APP-202,22130,5,10,Limited
+Supertron Electronics,SMA-APP-204,32184,10,1,In stock
+Redington India,SMA-NOI-194,2807,10,2,Limited
+Supertron Electronics,SMA-NOI-194,2919,10,1,Limited
+Savex Technologies,SMA-NOI-195,22642,3,5,In stock
+Supertron Electronics,SMA-NOI-195,21772,5,5,Limited
+Redington India,SMA-NOI-197,7167,3,10,In stock
+Savex Technologies,SMA-NOI-197,6892,10,1,Limited
+Savex Technologies,SMA-NOI-200,25710,10,1,In stock
+Redington India,SMA-ONE-103,21385,10,1,Limited
+Reliance Digital Distribution,SMA-ONE-103,20562,7,5,In stock
+Reliance Digital Distribution,SMA-ONE-105,36861,3,10,In stock
+Supertron Electronics,SMA-ONE-106,69797,2,5,In stock
+Supertron Electronics,SMA-ONE-107,50256,7,1,In stock
+Ingram Micro India,SMA-SAM-101,36090,5,1,In stock
+Savex Technologies,SMA-SAM-101,34702,10,1,In stock
+Ingram Micro India,SMA-SAM-108,45421,10,10,In stock
+Reliance Digital Distribution,SMA-SAM-112,48045,10,10,In stock
+Supertron Electronics,SMA-SAM-112,46197,7,10,Limited
+Redington India,SMA-SAM-113,41137,5,1,In stock
+Brand Direct,SMA-SAM-193,9438,7,2,Limited
+Redington India,SMA-SAM-196,14715,10,1,Limited
+Supertron Electronics,SMA-SAM-201,3986,5,1,Limited
+Brand Direct,SMA-VIV-102,29098,5,5,In stock
+Reliance Digital Distribution,SMA-XIA-104,54460,10,2,Limited
+Supertron Electronics,SMA-XIA-104,52366,7,2,Limited
+Ingram Micro India,SMA-XIA-111,53735,7,10,In stock
+Redington India,SW-FIT-3,6535,5,5,In stock
+Savex Technologies,TEL-LG-138,68507,5,10,In stock
+Redington India,TEL-SAM-128,101280,2,10,In stock
+Reliance Digital Distribution,TEL-SAM-133,38544,5,2,Limited
+Savex Technologies,TEL-SAM-133,37061,7,10,Limited
+Brand Direct,TEL-SON-130,47818,5,10,In stock
+Savex Technologies,TEL-SON-130,49731,5,5,In stock
+Savex Technologies,TEL-SON-135,37155,3,2,Limited
+Supertron Electronics,TEL-SON-135,38641,5,5,In stock
+Savex Technologies,TEL-SON-139,55466,5,5,In stock
+Ingram Micro India,TEL-TCL-129,84664,7,1,Limited
+Redington India,TEL-TCL-129,88050,2,2,Limited
+Supertron Electronics,TEL-TCL-131,30209,2,10,In stock
+Brand Direct,TEL-TCL-137,82413,3,5,Limited
+Redington India,TEL-TCL-137,79243,3,5,Limited
+Brand Direct,TEL-XIA-127,14809,3,1,In stock
+Reliance Digital Distribution,TEL-XIA-127,15402,10,1,Limited
+Redington India,TEL-XIA-132,88675,3,10,Limited
+Savex Technologies,TEL-XIA-134,97309,5,5,In stock
+Ingram Micro India,TEL-XIA-136,47062,3,10,In stock
+Savex Technologies,TEL-XIA-136,45252,7,5,Limited
+Brand Direct,TV-55Q7,46200,7,5,In stock
+Redington India,TV-55Q7,48510,2,2,In stock
+Redington India,TV-65U8,51373,5,2,In stock
+Savex Technologies,TV-65U8,53428,5,2,Limited
+Brand Direct,WAS-BOS-158,28267,5,5,In stock
+Ingram Micro India,WAS-BOS-158,29398,7,5,In stock
+Ingram Micro India,WAS-BOS-165,31289,3,2,Limited
+Supertron Electronics,WAS-IFB-153,17290,3,5,In stock
+Redington India,WAS-IFB-157,25747,2,10,In stock
+Reliance Digital Distribution,WAS-IFB-159,26205,5,1,In stock
+Supertron Electronics,WAS-IFB-159,25197,7,5,Limited
+Brand Direct,WAS-IFB-162,14108,10,2,Limited
+Supertron Electronics,WAS-IFB-162,14672,10,1,In stock
+Brand Direct,WAS-LG-155,36950,5,10,In stock
+Ingram Micro India,WAS-LG-160,31636,10,5,In stock
+Redington India,WAS-SAM-156,21830,5,10,In stock
+Reliance Digital Distribution,WAS-SAM-156,22703,3,2,In stock
+Brand Direct,WAS-SAM-163,34038,2,5,In stock
+Savex Technologies,WAS-SAM-163,32729,3,1,Limited
+Savex Technologies,WAS-WHI-154,38094,2,5,In stock
+Ingram Micro India,WAS-WHI-161,13446,2,1,In stock
+Savex Technologies,WAS-WHI-161,12928,10,10,In stock
+Reliance Digital Distribution,WAS-WHI-164,13894,7,10,Limited
+Brand Direct,WM-FL-8KG,30376,5,1,Limited
+Redington India,WM-FL-8KG,29207,10,2,In stock

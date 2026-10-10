@@ -8,20 +8,20 @@ import { openSeededDb } from "./helpers/seededDb";
 
 let cleanup: () => void;
 let engine: EngineResult;
-let storeA: Recommendation;
+let kora: Recommendation;
 
 beforeAll(() => {
   const seeded = openSeededDb();
   cleanup = seeded.cleanup;
   engine = runEngine(loadSnapshot(seeded.db, TODAY));
-  const rec = engine.recommendations.find((r) => r.problem.id === "STOCKOUT_BEFORE_REPLENISHMENT:TV-55-SM:Store A");
-  if (!rec) throw new Error("Scenario missing");
-  storeA = rec;
+  const rec = engine.recommendations.find((r) => r.problem.id === "SUPPLIER_TRADEOFF:TV-55Q7:Koramangala");
+  if (!rec) throw new Error("TV-55Q7 at Koramangala missing");
+  kora = rec;
 });
 afterAll(() => cleanup());
 
 const recommended = () => {
-  const o = storeA.optionSet.options.find((x) => x.recommended);
+  const o = kora.optionSet.options.find((x) => x.recommended);
   if (!o) throw new Error("No recommendation");
   return o;
 };
@@ -35,44 +35,46 @@ describe("simulateStock", () => {
   });
 });
 
-describe("runWhatIf: TV-55-SM at Store A", () => {
+describe("runWhatIf: TV-55Q7 at Koramangala", () => {
   it("with no change reproduces the engine's plan and top-up", () => {
-    const r = runWhatIf(storeA.problem.id, storeA.problem.context, recommended());
+    const r = runWhatIf(kora.problem.id, kora.problem.context, recommended());
     expect(r.option).toEqual(recommended());
-    expect(r.topUp).toEqual(storeA.optionSet.topUp);
+    expect(r.topUp).toEqual(kora.optionSet.topUp);
     expect(r.baseline.lostUnits).toBeGreaterThan(r.plan.lostUnits);
   });
 
-  it("switching to Supplier A arrives after the stock-out", () => {
-    const r = runWhatIf(storeA.problem.id, storeA.problem.context, recommended(), { units: 32, source: "Supplier A" });
-    expect(r.option).toMatchObject({ kind: "ORDER_FROM_SUPPLIER", from: "Supplier A", units: 32, cost: 32 * 35000, arrivesBeforeStockout: false, recommended: false });
+  it("switching to Brand Direct arrives after the stock-out", () => {
+    const r = runWhatIf(kora.problem.id, kora.problem.context, recommended(), { units: 26, source: "Brand Direct" });
+    expect(r.option).toMatchObject({ kind: "ORDER_FROM_SUPPLIER", from: "Brand Direct", units: 26, cost: 26 * 46200, arrivalDate: "2026-11-23", arrivesBeforeStockout: false, recommended: false });
     expect(r.topUp).toBeNull();
   });
 
   it("caps a transfer at the donor's spare units", () => {
-    const r = runWhatIf(storeA.problem.id, storeA.problem.context, recommended(), { units: 50 });
-    expect(r.option.units).toBe(5);
+    const r = runWhatIf(kora.problem.id, kora.problem.context, recommended(), { units: 50 });
+    expect(r.option.units).toBe(11);
   });
 
   it("offers suppliers and spare stores as sources", () => {
-    const values = sourcesFor(storeA.problem.context).map((s) => s.value);
-    expect(values).toEqual(expect.arrayContaining(["Supplier A", "Supplier B", "Supplier C", "Store B"]));
+    const values = sourcesFor(kora.problem.context).map((s) => s.value);
+    expect(values).toEqual(expect.arrayContaining(["Brand Direct", "Redington India", "Malleshwaram", "Whitefield"]));
   });
 });
 
 describe("explain", () => {
-  it("answers 'why Store A?' from computed evidence only", () => {
-    const e = explain("Why Store A?", engine.recommendations);
-    expect(e.problemId).toBe("STOCKOUT_BEFORE_REPLENISHMENT:TV-55-SM:Store A");
+  it("answers 'why Koramangala?' from computed evidence only", () => {
+    const e = explain("Why Koramangala?", engine.recommendations);
+    expect(e.problemId).toBe("STORE_IMBALANCE:TV-55Q7:Koramangala");
     const text = e.lines.join(" ");
-    expect(text).toContain("2 days of stock");
-    expect(text).toContain("Transfer 5 from Store B to Store A");
-    expect(text).toContain("Supplier B");
+    expect(text).toContain("2.4 days of stock");
+    expect(text).toContain("Transfer 11 from Malleshwaram to Koramangala");
+    expect(text).toContain("Redington India");
+    expect(text).toContain("Wedding Season TV Fest");
     expect(text).not.toContain(String.fromCharCode(0x2014));
   });
 
-  it("finds a PO by number", () => {
-    expect(explain("why is PO-001 a problem", engine.recommendations).problemId).toBe("LATE_PO_GAP:PO-001");
+  it("finds a PO by number, and a supplier by name", () => {
+    expect(explain("why is PO-8857 a problem", engine.recommendations).problemId).toBe("LATE_PO_GAP:PO-8857");
+    expect(explain("Why Redington India for TV-55Q7?", engine.recommendations).problemId).toBe("SUPPLIER_TRADEOFF:TV-55Q7:Koramangala");
   });
 
   it("admits when nothing matches", () => {

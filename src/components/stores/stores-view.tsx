@@ -79,7 +79,7 @@ export function StoresView() {
                         <td className="p-2 text-right">{s.daysOfStock >= NO_SALES_DAYS_OF_STOCK ? "No sales" : formatNumber(s.daysOfStock)}</td>
                         <td className="p-2">
                           {STATUS_LABEL[s.status]}
-                          {s.status === "balanced" && bandOf(s.daysOfStock) === "over" && " (high cover)"}
+                          {s.status === "balanced" && bandOf(s.daysOfStock, cell.store) === "over" && " (high cover)"}
                         </td>
                       </tr>
                     ))}

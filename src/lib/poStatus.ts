@@ -1,5 +1,5 @@
 import { daysBetween } from "./dates";
-import type { IsoDate, PurchaseOrderRow } from "./types";
+import type { EffectivePurchaseOrder, IsoDate, PurchaseOrderRow } from "./types";
 
 // Live purchase-order status: suppliers post updates (a new ETA, dispatched,
 // delivered...). The PO row keeps the date that was PROMISED; the latest update
@@ -79,15 +79,15 @@ export function validateStatusUpdate(
 }
 
 /** One PO as the engine should see it, given the supplier's updates in arrival order. */
-export function livePo(po: PurchaseOrderRow, updates: readonly PoStatusUpdate[], asOf: IsoDate): { effective: PurchaseOrderRow; live: PoLive } {
+export function livePo(po: PurchaseOrderRow, updates: readonly PoStatusUpdate[], asOf: IsoDate): { effective: EffectivePurchaseOrder; live: PoLive } {
   const history = updates.filter((u) => u.po === po.po);
   const latest = history[history.length - 1] ?? null;
   const promisedDate = po.expected_date;
 
-  if (po.status === "delivered" || latest?.status === "delivered") {
+  if (po.status === "received" || latest?.status === "delivered") {
     const deliveredOn = latest?.status === "delivered" ? latest.eta : promisedDate;
     return {
-      effective: { ...po, status: "delivered", expected_date: deliveredOn },
+      effective: { ...po, status: "delivered", supplierStatus: po.status, expected_date: deliveredOn },
       live: { po: po.po, promisedDate, currentEta: deliveredOn, state: "delivered", overdue: false, daysLate: Math.max(0, daysBetween(promisedDate, deliveredOn)), latest, history },
     };
   }
@@ -97,8 +97,8 @@ export function livePo(po: PurchaseOrderRow, updates: readonly PoStatusUpdate[],
   // Overdue: late by every day since the promise. Otherwise: by how far the ETA slipped.
   const daysLate = overdue ? daysBetween(promisedDate, asOf) : Math.max(0, daysBetween(promisedDate, currentEta));
   return {
-    // A confirmed future ETA counts as inbound at that date; a passed one never does.
-    effective: { ...po, expected_date: currentEta, status: overdue ? "overdue" : "in_transit" },
+    // An open or confirmed PO with a future ETA counts as inbound at that date; a passed one never does.
+    effective: { ...po, expected_date: currentEta, status: overdue ? "overdue" : "in_transit", supplierStatus: po.status },
     live: { po: po.po, promisedDate, currentEta, state: daysLate > 0 ? "late" : "on_time", overdue, daysLate, latest, history },
   };
 }

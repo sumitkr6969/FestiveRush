@@ -1,11 +1,45 @@
 # The Festival Rush: VoltKart Supply Intelligence
 
-A supply-chain prototype for VoltKart Electronics (12 stores). It reads sales, stock, suppliers,
+A supply-chain prototype for VoltKart Electronics (6 Bengaluru stores and Central WH). It reads sales, stock, suppliers,
 purchase orders and promotions, finds the problems, compares the ways to fix each one and
 recommends a single action. Every action is a simulated draft that waits for a human to approve
 or reject it. Nothing is ever sent.
 
-The data is a fixed snapshot dated **Fri 9 Oct 2026** (`TODAY` in `src/lib/config.ts`).
+The data is the challenge dataset in `data/source/`: a stock count taken the morning of
+**Mon 16 Nov 2026** (`TODAY` in `src/lib/config.ts`), with sales from 18 Aug to 15 Nov.
+
+## Data
+
+| File | Rows | Notes |
+| --- | --- | --- |
+| `products.csv` | 151 | 11 categories |
+| `inventory.csv` | 1,057 | every SKU at the 6 stores and `Central WH` |
+| `sales.csv` | 20,919 | only days with sales; a missing day means 0 units |
+| `suppliers.csv` | 231 | 1 or 2 suppliers per SKU |
+| `purchase_orders.csv` | 43 | Received, Open (not yet confirmed) or Confirmed |
+| `promotions.csv` | 4 | `expected_uplift` is a fraction (0.40 = +40% demand) |
+
+`npm run seed` reads the six files, checks every value and every cross-reference, and refuses
+to build if anything is wrong, listing each problem with its file and line. Only three things are
+normalised: supplier availability and PO status are lower-cased (`In stock` → `in_stock`), and
+the promotion dates load into `"start"`/`"end"`. Discounts keep their wording ("10%",
+"Buy 2 Get 10% off"); only a flat percentage changes the till price at the Billing counter.
+
+**Updated file?** Replace it in `data/source/` (same columns, same format), run `npm run seed`,
+then restart the dev server. If the new sales run past 15 Nov, move `TODAY` to the day after the
+last sales day; the seed prints a warning when that is needed.
+
+How the engine reads this data:
+
+- **Central WH** sells nothing, so it is never "understocked". Its cover is measured against the
+  stores' combined sales, and it is only overstocked when the whole network holds more than
+  `WAREHOUSE_OVERSTOCK_DAYS` (60) days, or its stock has aged. It is offered as a transfer source.
+- **Velocity** is the last 30 days of sales with promotion uplift taken out (a day sold at +15%
+  counts as units ÷ 1.15), so the Combo Offer that ran the whole window doesn't inflate the forecast.
+- **Cannibalisation** needs the same brand, category and model line: `INS15-G12` and `INS15-G13`
+  are one line, so the Inspiron 13th Gen launch is matched to the 12th Gen and to no other Dell.
+- **Understocked** means it runs out before the slowest supplier could deliver; CRITICAL when
+  even the fastest is too late or the shelf empties before a promotion starts.
 
 ## Setup
 
@@ -19,9 +53,9 @@ npm run dev       # http://localhost:3000
 
 | Script | What it does |
 | --- | --- |
-| `npm run seed` | Recreates `data/voltkart.db` from `scripts/schema.sql` and the seeded generator |
+| `npm run seed` | Recreates `data/voltkart.db` from `scripts/schema.sql` and `data/source/*.csv` |
 | `npm run build` | Seeds, then builds for production (the database ships with the build) |
-| `npm test` | Vitest: schema, seed scenario, engines, what-if, explanations, copy rules |
+| `npm test` | Vitest: schema, CSV import, engines on the real data, what-if, explanations, copy rules |
 | `npm run typecheck` / `npm run lint` | TypeScript strict and ESLint |
 
 Approved and rejected decisions go to `data/decisions.json`. On Vercel the filesystem is
@@ -65,7 +99,7 @@ causes intermittent "Page not found" errors and makes `npm run build` fail with 
 
 ## Architecture
 
-1. `scripts/seed.ts` builds the six-table SQLite file at build time. The engine reads it read-only; only the vault and billing routes write, through `getWritableDb()` in `vaultStore.ts`.
+1. `scripts/seed.ts` builds the six-table SQLite file from `data/source/` at build time. The engine reads it read-only; only the vault and billing routes write, through `getWritableDb()` in `vaultStore.ts`.
 2. `src/lib/snapshot.ts` holds all the SQL; everything after it is pure, deterministic TypeScript.
 3. `stockAnalyzer` classifies each SKU at each store, `problemDetector` finds 7 problem types, `optionsEngine` compares 2 to 4 options and marks exactly one as recommended, and `drafts` turns the options into simulated actions. All thresholds are in `config.ts`.
 4. `src/app/api/*` serves the engine results. `POST /api/decisions` recomputes any what-if change on the server before logging it, and `DELETE` undoes a decision.
@@ -73,39 +107,41 @@ causes intermittent "Page not found" errors and makes `npm run build` fail with 
 
 ## Two-minute demo
 
-**0:00 Overview.** "45 things need your attention today, 14 critical." The four cards cover stock,
-signals, open POs (3 overdue) and live promotions (2 running, TV starts in 3 days). Hover the
-info icon on a card to show how it is calculated.
+**0:00 Overview.** "22 things need your attention today, 4 critical." The cards cover stock,
+signals, open POs (27 open, 1 overdue) and promotions (the Wedding Season TV Fest starts in 3
+days). Hover the info icon on a card to show how it is calculated.
 
-**0:20 The problem.** Open Stock signals and search `TV-55-SM`, store `Store A`. The card reads:
-2/day, 2 days of stock, 2 to 10 day lead time, +40% promotion. Store A runs out on 11 Oct and the
-TV promotion starts on 12 Oct.
+**0:20 The problem.** Open Stock signals and search `TV-55Q7`, store `Koramangala`. The card
+reads: 1.7/day, 2.4 days of stock, 2 to 7 day lead time, +40% promotion. Koramangala runs out on
+18 Nov and the TV fest starts on 19 Nov.
 
-**0:40 The options.** Open the card. Point out the evidence: PO-001 from Supplier A is 2 days late,
-so it is not counted as incoming stock. In the options table, only Supplier B (2 days, ₹36,750)
-arrives before the stock-out. Supplier A is 7 days and Supplier C is 10 days. Doing nothing loses
-₹14,40,000 in sales.
+**0:40 The options.** Open the card. Only Redington India (2 days, ₹48,510) arrives before the
+stock-out; Brand Direct is ₹2,310 cheaper per unit but takes 7 days. Doing nothing loses
+₹15,33,740 in sales over the next two weeks.
 
-**1:00 The recommendation.** Transfer Store B's 5 spare units (₹2,250, arrives 10 Oct), then top
-up 27 units from Supplier B. Store B is sitting on 24 days of stock, so moving its stock is
+**1:00 The recommendation.** Transfer Malleshwaram's 11 spare units (₹6,490, arrives 17 Nov),
+then top up 15 from Redington India. Malleshwaram is sitting on 36 days of stock, so moving it is
 cheaper than buying more.
 
-**1:20 What if.** Switch the source to Supplier A: the arrival becomes 16 Oct and "Before
+**1:20 What if.** Switch the source to Brand Direct: the arrival becomes 23 Nov and "Before
 stock-out" turns to No. Select Reset. The draft preview is labelled "Simulated: nothing is sent".
 
 **1:35 Decide.** Press **A** to approve. A toast appears with Undo, the card leaves the list, and
-the counter drops by 4, because the store imbalance, supplier trade-off and late PO-001 signals
-for the same TV at Store A are settled too. Open the Decisions log to show the transfer and the Supplier B
-order, then Export CSV.
+the counter drops by 2, because the supplier trade-off for the same TV at Koramangala is settled
+too. Open the Decisions log to show the transfer and the Redington India order, then Export CSV.
 
-**1:50 Ask.** Select the speech-bubble icon and ask "Why is PO-001 a problem?". The answer uses
-only the numbers the engine already computed.
+**1:50 Ask.** Select the speech-bubble icon and ask "Why is PO-8857 a problem?". The answer uses
+only the numbers the engine already computed: Reliance Digital Distribution's 40 headphones were
+promised for 11 Nov, Indiranagar runs out on 17 Nov, so move 14 from HSR Layout.
 
-**Extra: live supplier status.** On a fresh database, open the Late PO signal for PO-001. The
-Agent suggestion says Supplier A has no new date, so: transfer 5 from Store B, top up from
-Supplier B. Select **Update status**, report "In transit" for 10 Oct with a note. The suggestion
-changes at once: the PO now lands before Store A runs out, so waiting for it plus a smaller
-Supplier B top-up becomes the cheapest plan.
+**Extra: live supplier status.** On a fresh database, open the Late PO signal for PO-8857 and
+select **Update status**: report "In transit" for today. The PO now lands before Indiranagar runs
+out, so waiting for it becomes the cheapest plan.
+
+**Other stories in the data:** the Inspiron 15 13th Gen (launched 27 Oct) has stalled the 12th
+Gen, and confirmed PO-8851 is about to bring 30 more 12th Gens (the engine suggests cancelling
+it); 28 LG front loaders have sat 140 days at HSR Layout while Jayanagar is nearly out; the Godrej
+190L fridge has aged over 195 days everywhere.
 
 Keyboard: **Ctrl+K** opens the command palette. In a review, **A** approves, **R** rejects,
 **J**/**K** move to the next or previous signal and **Esc** closes. The **?** icon replays the tour.

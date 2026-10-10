@@ -10,29 +10,29 @@ import type {
 } from "./decisionTypes";
 import type { PoLive } from "./poStatus";
 import type { CellAssessment } from "./stockAnalyzer";
-import type { IsoDate, PromotionRow, PurchaseOrderRow, SupplierRow } from "./types";
+import type { EffectivePurchaseOrder, IsoDate, PromotionRow, SupplierRow } from "./types";
 
 /** Shared lookups for building problem contexts from one assessed snapshot. */
 export interface DetectionInput {
   asOf: IsoDate;
   cells: CellAssessment[];
   suppliers: SupplierRow[];
-  purchaseOrders: PurchaseOrderRow[];
+  purchaseOrders: EffectivePurchaseOrder[];
   /** Live status per PO (promised vs latest ETA, supplier updates). */
   poLive: Record<string, PoLive>;
 }
 
 /** Not delivered and its date hasn't passed: the only POs allowed to count as inbound. */
-export function isValidInbound(po: PurchaseOrderRow, asOf: IsoDate): boolean {
+export function isValidInbound(po: EffectivePurchaseOrder, asOf: IsoDate): boolean {
   return po.status === "in_transit" && po.expected_date >= asOf;
 }
 
 /** Explicitly overdue, or still in transit past its expected date. */
-export function isOverdue(po: PurchaseOrderRow, asOf: IsoDate): boolean {
+export function isOverdue(po: EffectivePurchaseOrder, asOf: IsoDate): boolean {
   return po.status === "overdue" || (po.status === "in_transit" && po.expected_date < asOf);
 }
 
-export const daysLate = (po: PurchaseOrderRow, asOf: IsoDate) => Math.max(0, daysBetween(po.expected_date, asOf));
+export const daysLate = (po: EffectivePurchaseOrder, asOf: IsoDate) => Math.max(0, daysBetween(po.expected_date, asOf));
 
 export function inboundFor(input: DetectionInput, sku: string): InboundPo[] {
   return input.purchaseOrders
@@ -63,7 +63,7 @@ function warehouseSpare(input: DetectionInput, sku: string): number | null {
 }
 
 const windowOf = (p: PromotionRow | null): PromotionWindow | null =>
-  p ? { name: p.sku_or_category, start: p.start, end: p.end, uplift: p.expected_uplift } : null;
+  p ? { name: p.promotion, start: p.start, end: p.end, uplift: p.expected_uplift } : null;
 
 const round2 = (n: number) => Math.round(n * 100) / 100;
 

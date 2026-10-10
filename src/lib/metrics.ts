@@ -1,6 +1,6 @@
-import { NO_SALES_DAYS_OF_STOCK, PROJECTION_DAYS, SALES_WINDOW_DAYS } from "./config";
+import { NO_SALES_DAYS_OF_STOCK, PROJECTION_DAYS, SALES_WINDOW_DAYS, WAREHOUSE } from "./config";
 import { addDays, dayOfWeek, daysBetween } from "./dates";
-import { cellKey, type Snapshot } from "./snapshot";
+import { cellKey, type DaySales, type Snapshot } from "./snapshot";
 import type { IsoDate, ProductRow, PromotionRow, SupplierRow } from "./types";
 
 /** Every number the engines need about one SKU at one store. */
@@ -9,13 +9,18 @@ export interface CellMetrics {
   product: string;
   brand: string;
   category: string;
+  model: string;
   launchDate: IsoDate;
   sellingPrice: number;
   store: string;
+  /** The warehouse sells nothing; its cover is measured against the stores' sales. */
+  isWarehouse: boolean;
   stock: number;
   ageingDays: number;
   avgDailySales: number;
   daysOfStock: number;
+  /** All locations' stock (stores + warehouse) ÷ the stores' combined daily sales. */
+  networkDaysOfStock: number;
   fastestLead: number;
   slowestLead: number;
   reorderPoint: number;
@@ -96,6 +101,26 @@ function nextPromotion(asOf: IsoDate, promos: readonly PromotionRow[]): Promotio
   return live[0] ?? null;
 }
 
+/**
+ * Units per sku|store in the sales window with promotion uplift taken out:
+ * a day sold during a +40% promotion counts as units ÷ 1.4. Otherwise a promotion that
+ * just ended would inflate the forecast, and one still to come would be counted twice.
+ */
+export function baselineUnits(
+  sales: readonly DaySales[],
+  products: readonly ProductRow[],
+  promotions: readonly PromotionRow[],
+): Map<string, number> {
+  const promosBySku = new Map(products.map((p) => [p.sku, promotionsFor(p, promotions)]));
+  const out = new Map<string, number>();
+  for (const s of sales) {
+    const promo = promosBySku.get(s.sku)?.find((p) => p.start <= s.date && s.date <= p.end);
+    const key = cellKey(s.sku, s.store);
+    out.set(key, (out.get(key) ?? 0) + s.units / (1 + (promo?.expected_uplift ?? 0)));
+  }
+  return out;
+}
+
 /** Leads from suppliers that can actually ship; if all are on backorder, use them all. */
 function leadRange(suppliers: readonly SupplierRow[]): { fastest: number; slowest: number } {
   const usable = suppliers.filter((s) => s.availability !== "backorder");
@@ -114,17 +139,38 @@ export function computeMetrics(snapshot: Snapshot): CellMetrics[] {
   const products = new Map(snapshot.products.map((p) => [p.sku, p]));
   const suppliersBySku = new Map<string, SupplierRow[]>();
   for (const s of snapshot.suppliers) suppliersBySku.set(s.sku, [...(suppliersBySku.get(s.sku) ?? []), s]);
+  const baseline = baselineUnits(snapshot.recentSales, snapshot.products, snapshot.promotions);
+
+  const rateOf = (sku: string, store: string): number => {
+    if (store === WAREHOUSE) return 0;
+    const product = products.get(sku);
+    if (!product) return 0;
+    // A SKU launched 21 days ago has only 21 days of sales: dividing by 30 would
+    // understate its rate by 30%, so divide by the days it has actually been on sale.
+    const daysOnSale = Math.max(1, Math.min(SALES_WINDOW_DAYS, daysBetween(product.launch_date, asOf)));
+    return (baseline.get(cellKey(sku, store)) ?? 0) / daysOnSale;
+  };
+
+  // Network totals per SKU: what the warehouse serves and what the whole chain holds.
+  const networkRate = new Map<string, number>();
+  const networkStock = new Map<string, number>();
+  for (const row of snapshot.inventory) {
+    networkRate.set(row.sku, (networkRate.get(row.sku) ?? 0) + rateOf(row.sku, row.store));
+    networkStock.set(row.sku, (networkStock.get(row.sku) ?? 0) + row.stock);
+  }
+  const cover = (stock: number, rate: number) => (rate > 0 ? round1(stock / rate) : NO_SALES_DAYS_OF_STOCK);
 
   return snapshot.inventory.map((row): CellMetrics => {
     const product = products.get(row.sku);
     const suppliers = suppliersBySku.get(row.sku) ?? [];
     if (!product || suppliers.length === 0) throw new Error(`Missing product or suppliers for ${row.sku}`);
 
-    // A SKU launched 21 days ago has only 21 days of sales: dividing by 30 would
-    // understate its rate by 30%, so divide by the days it has actually been on sale.
-    const daysOnSale = Math.max(1, Math.min(SALES_WINDOW_DAYS, daysBetween(product.launch_date, asOf)));
-    const avgDailySales = (snapshot.recentUnits.get(cellKey(row.sku, row.store)) ?? 0) / daysOnSale;
-    const daysOfStock = avgDailySales > 0 ? round1(row.stock / avgDailySales) : NO_SALES_DAYS_OF_STOCK;
+    const isWarehouse = row.store === WAREHOUSE;
+    const avgDailySales = rateOf(row.sku, row.store);
+    const skuRate = networkRate.get(row.sku) ?? 0;
+    // A store's cover is its own stock ÷ its own sales; the warehouse's is how many
+    // days of the whole network's sales it could feed.
+    const daysOfStock = cover(row.stock, isWarehouse ? skuRate : avgDailySales);
     const { fastest, slowest } = leadRange(suppliers);
     const cheapestPrice = Math.min(...suppliers.map((s) => s.purchase_price));
     const promos = promotionsFor(product, snapshot.promotions);
@@ -135,18 +181,22 @@ export function computeMetrics(snapshot: Snapshot): CellMetrics[] {
       product: product.product,
       brand: product.brand,
       category: product.category,
+      model: product.model,
       launchDate: product.launch_date,
       sellingPrice: product.selling_price,
       store: row.store,
+      isWarehouse,
       stock: row.stock,
       ageingDays: row.ageing_days,
       avgDailySales: Math.round(avgDailySales * 1000) / 1000,
       daysOfStock,
+      networkDaysOfStock: cover(networkStock.get(row.sku) ?? 0, skuRate),
       fastestLead: fastest,
       slowestLead: slowest,
       // Units that sell while the fastest order is in transit.
       reorderPoint: round1(avgDailySales * fastest),
-      stockoutInDays: daysOfStock,
+      // The warehouse never runs a store out, so it has no stock-out horizon of its own.
+      stockoutInDays: isWarehouse ? NO_SALES_DAYS_OF_STOCK : daysOfStock,
       cheapestPrice,
       // Valued at the cheapest replacement cost: what this stock would cost to rebuy.
       cashTiedUp: row.stock * cheapestPrice,
